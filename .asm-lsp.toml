@@ -1,0 +1,5 @@
+version = "0.1"
+
+[default_config]
+assembler = "gas"
+instruction_set = "AVR"
