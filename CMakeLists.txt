@@ -21,23 +21,25 @@ add_compile_options(
     -DF_CPU=${F_CPU}
     -Wall
     -Wextra
-    -ffunction-sections
-    -fdata-sections
+    -Os
+    -mrelax
+    # -ffunction-sections
+    # -fdata-sections
     -g
 )
 
 add_link_options(
     -mmcu=${MCU}
     -nostdlib
-    -nostartfiles
     # -Wl,--gc-sections
+    -Wl,-Map=${PROJECT_NAME}.map
 )
 
 add_executable(${PROJECT_NAME}.elf main.S)
 
 add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
-    COMMENT "Running Post-Build Process..."
-    COMMAND avr-objcopy -O ihex ${PROJECT_NAME}.elf ${PROJECT_NAME}.hex
-    COMMAND avr-objcopy -I ihex -O binary ${PROJECT_NAME}.hex ${PROJECT_NAME}.bin
+    COMMENT "Generating HEX and BIN files..."
+    COMMAND avr-objcopy -O ihex -R .eeprom ${PROJECT_NAME}.elf ${PROJECT_NAME}.hex
+    COMMAND avr-objcopy -O binary -R .eeprom ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
     COMMAND avr-size -C --mcu=${MCU} ${PROJECT_NAME}.elf
 )
