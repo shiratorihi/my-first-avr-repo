@@ -21,25 +21,29 @@ add_compile_options(
     -DF_CPU=${F_CPU}
     -Wall
     -Wextra
-    -Os
     -mrelax
     # -ffunction-sections
     # -fdata-sections
     -g
 )
 
+set(SRC_FILE "main.S" CACHE STRING "Source files to build")
+list(GET SRC_FILE 0 MAIN_SRC)
+get_filename_component(TARGET_NAME ${MAIN_SRC} NAME_WE)
+
 add_link_options(
     -mmcu=${MCU}
     -nostdlib
+    -mrelax
     # -Wl,--gc-sections
-    -Wl,-Map=${PROJECT_NAME}.map
+    -Wl,-Map=${TARGET_NAME}.map
 )
 
-add_executable(${PROJECT_NAME}.elf main.S)
+add_executable(${TARGET_NAME}.elf ${SRC_FILE})
 
-add_custom_command(TARGET ${PROJECT_NAME}.elf POST_BUILD
+add_custom_command(TARGET ${TARGET_NAME}.elf POST_BUILD
     COMMENT "Generating HEX and BIN files..."
-    COMMAND avr-objcopy -O ihex -R .eeprom ${PROJECT_NAME}.elf ${PROJECT_NAME}.hex
-    COMMAND avr-objcopy -O binary -R .eeprom ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
-    COMMAND avr-size -C --mcu=${MCU} ${PROJECT_NAME}.elf
+    COMMAND avr-objcopy -O ihex -R .eeprom ${TARGET_NAME}.elf ${TARGET_NAME}.hex
+    COMMAND avr-objcopy -O binary -R .eeprom ${TARGET_NAME}.elf ${TARGET_NAME}.bin
+    COMMAND avr-size -C --mcu=${MCU} ${TARGET_NAME}.elf
 )
