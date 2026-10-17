@@ -1,6 +1,6 @@
 .equ RAMEND, 0x08FF
-.equ SPL_IO, 0x3D
-.equ SPH_IO, 0x3E
+.equ SPL, 0x3D
+.equ SPH, 0x3E
 
 .section .text
 .global _start
@@ -12,6 +12,6 @@
 _start:
     ; Stack Pointer init
     ldi r16, lo8(RAMEND)
-    out SPL_IO, r16
+    out SPL, r16
     ldi r16, hi8(RAMEND)
-    out SPH_IO, r16
+    out SPH, r16
