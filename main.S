@@ -5,32 +5,8 @@
 .org 0x0000
 
     jmp _start          ; 0x0000 RESET
-    reti                ; 0x0002 INT0
-    reti                ; 0x0004 INT1
-    reti                ; 0x0006 PCINT0
-    reti                ; 0x0008 PCINT1
-    reti                ; 0x000A PCINT2
-    reti                ; 0x000C WDT
-    reti                ; 0x000E TIMER2_COMPA
-    reti                ; 0x0010 TIMER2_COMPB
-    reti                ; 0x0012 TIMER2_OVF
-    reti                ; 0x0014 TIMER1_CAPT
-    reti                ; 0x0016 TIMER1_COMPA
-    reti                ; 0x0018 TIMER1_COMPB
-    reti                ; 0x001A TIMER1_OVF
-    reti                ; 0x001C TIMER0_COMPA
-    reti                ; 0x001E TIMER0_COMPB
-    reti                ; 0x0020 TIMER0_OVF
-    reti                ; 0x0022 SPI_STC
-    reti                ; 0x0024 USART_RX
-    reti                ; 0x0026 USART_UDRE
-    reti                ; 0x0028 USART_TX
-    reti                ; 0x002A ADC
-    reti                ; 0x002C EE_READY
-    reti                ; 0x002E ANALOG_COMP
-    reti                ; 0x0030 TWI
-    reti                ; 0x0032 SPM_READY
 
+.org 0x0068
 _start:
     ; Stack Pointer init
     ldi r16, lo8(RAMEND)
