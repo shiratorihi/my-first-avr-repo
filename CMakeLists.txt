@@ -21,7 +21,7 @@ add_compile_options(
     -DF_CPU=${F_CPU}
     -Wall
     -Wextra
-    -mrelax
+    # -mrelax
     # -ffunction-sections
     # -fdata-sections
     -g
@@ -34,7 +34,7 @@ get_filename_component(TARGET_NAME ${MAIN_SRC} NAME_WE)
 add_link_options(
     -mmcu=${MCU}
     -nostdlib
-    -mrelax
+    # -mrelax
     # -Wl,--gc-sections
     -Wl,-Map=${TARGET_NAME}.map
 )
