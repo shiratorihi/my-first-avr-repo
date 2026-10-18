@@ -12,9 +12,15 @@
 .equ DDRD, 0x0A
 .equ PORTB, 0x05
 .equ PORTD, 0x0B
+; Set text to show on 7-seg, 4-digit number only
+; .equ TEXT, '2026'
+.macro TEXT
+  .ascii "1234"
+.endm
 
 .section .bss
 seg_table: .space 10
+text_to_show: .space 4
 
 .section .text
 .global _start
@@ -37,46 +43,88 @@ _start:
   ldi r16, 0xFF ; Set seg sel PB7:0 to output
   out DDRB, r16
 
-  rcall mem_init
+  rcall seg_table_init
+  rcall text_to_show_init
   rjmp test_loop
 
-mem_init:
+seg_table_init:
   ; Load seg table from flash and store in sram
   ldi ZH, hi8(seg_table_flash)
   ldi ZL, lo8(seg_table_flash)
   ldi XH, hi8(seg_table)
   ldi XL, lo8(seg_table)
-
   ldi r17, 10
-mem_init_loop:
-  ; ldi r18, 0
+seg_table_init_loop:
   lpm r16, Z+
   st X+, r16
   dec r17
-  ; cpse r17, r18
-  ; rjmp mem_init_loop
-  brne mem_init_loop
+  brne seg_table_init_loop
+  ret
+
+text_to_show_init:
+  ; Load text to show from flash and store in sram
+  ldi ZH, hi8(text_to_show_flash)
+  ldi ZL, lo8(text_to_show_flash)
+  ldi XH, hi8(text_to_show)
+  ldi XL, lo8(text_to_show)
+  ldi r17, 4
+text_to_show_init_loop:
+  lpm r16, Z+
+  st X+, r16
+  dec r17
+  brne text_to_show_init_loop
   ret
 
 test_loop:
-  ; Simple text showing '2026' by dynamic scanning
+  ; Simple text showing by dynamic scanning
   rcall sel_digit_1
-  lds r16, seg_table + 2
+  ldi XH, hi8(text_to_show)
+  ldi XL, lo8(text_to_show)
+  ld r16, X
+  subi r16, 0x30
+  ldi XH, hi8(seg_table)
+  ldi XL, lo8(seg_table)
+  add XL, r16
+  ld r16, X
   out PORTB, r16
   rcall delay
 
   rcall sel_digit_2
-  lds r16, seg_table + 0
+  ; lds r16, seg_table + 0
+  ldi XH, hi8(text_to_show)
+  ldi XL, lo8(text_to_show + 1)
+  ld r16, X
+  subi r16, 0x30
+  ldi XH, hi8(seg_table)
+  ldi XL, lo8(seg_table)
+  add XL, r16
+  ld r16, X
   out PORTB, r16
   rcall delay
 
   rcall sel_digit_3
-  lds r16, seg_table + 2
+  ; lds r16, seg_table + 2
+  ldi XH, hi8(text_to_show)
+  ldi XL, lo8(text_to_show + 2)
+  ld r16, X
+  subi r16, 0x30
+  ldi XH, hi8(seg_table)
+  ldi XL, lo8(seg_table)
+  add XL, r16
+  ld r16, X
   out PORTB, r16
   rcall delay
 
   rcall sel_digit_4
-  lds r16, seg_table + 6
+  ; lds r16, seg_table + 6
+  ldi XH, hi8(text_to_show)
+  ldi XL, lo8(text_to_show + 3)
+  ld r16, X
+  subi r16, 0x30
+  ldi XH, hi8(seg_table)
+  ldi XL, lo8(seg_table)
+  add XL, r16
+  ld r16, X
   out PORTB, r16
   rcall delay
 
@@ -136,3 +184,6 @@ seg_table_flash:
   .byte 0xE0 ; 7
   .byte 0xFE ; 8
   .byte 0xF6 ; 9
+
+text_to_show_flash:
+  TEXT
