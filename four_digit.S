@@ -173,6 +173,9 @@ delay_loop:
   brne delay_loop
   ret
 
+guard_loop:
+  rjmp guard_loop ; Prevent program from running into data table by accident
+
 seg_table_flash:
   .byte 0xFC ; 0
   .byte 0x60 ; 1
