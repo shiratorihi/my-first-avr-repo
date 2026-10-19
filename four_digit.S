@@ -47,7 +47,7 @@ _start:
 
   rcall seg_table_init ; Load seg_table into sram
   rcall text_to_show_init ; Load text_to_show into sram
-  rjmp test_loop
+  rjmp show_static_loop
 
 seg_table_init:
   ; Load seg table from flash and store in sram
@@ -77,7 +77,7 @@ text_to_show_init_loop:
   brne text_to_show_init_loop
   ret
 
-test_loop:
+show_static_loop:
   ; Simple text showing by dynamic scanning
   rcall sel_digit_1
   ldi XH, hi8(text_to_show)
@@ -127,7 +127,7 @@ test_loop:
   out PORTB, r16
   rcall delay
 
-  rjmp test_loop
+  rjmp show_static_loop
 
 sel_digit_1:
   ldi r16, 0x00
