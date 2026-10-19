@@ -89,6 +89,8 @@ show_static_loop:
   ldi XH, hi8(seg_table)
   ldi XL, lo8(seg_table)
   add XL, r16
+  clr r0
+  adc XH, r0
   ld r16, X
   out PORTB, r16
   rcall delay
@@ -101,6 +103,8 @@ show_static_loop:
   ldi XH, hi8(seg_table)
   ldi XL, lo8(seg_table)
   add XL, r16
+  clr r0
+  adc XH, r0
   ld r16, X
   out PORTB, r16
   rcall delay
@@ -113,6 +117,8 @@ show_static_loop:
   ldi XH, hi8(seg_table)
   ldi XL, lo8(seg_table)
   add XL, r16
+  clr r0
+  adc XH, r0
   ld r16, X
   out PORTB, r16
   rcall delay
@@ -125,6 +131,8 @@ show_static_loop:
   ldi XH, hi8(seg_table)
   ldi XL, lo8(seg_table)
   add XL, r16
+  clr r0
+  adc XH, r0
   ld r16, X
   out PORTB, r16
   rcall delay
