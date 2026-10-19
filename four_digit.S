@@ -17,7 +17,7 @@
 .equ DDRD, 0x0A
 .equ PORTB, 0x05
 .equ PORTD, 0x0B
-; Set text to show on 7-seg, 4-digit number only
+; Set static text to show on 7-seg, 4-digit number only
 .macro TEXT
   .ascii "0721"
 .endm
