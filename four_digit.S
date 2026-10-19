@@ -1,3 +1,5 @@
+; vim: set filetype=asm:
+
 ; four_digit.S by ShiratoriYuuka314
 ; For use on ATmega328P microcontroller
 ; Using common-cathode 4-digit 7-seg display driven by S8050 BJT
