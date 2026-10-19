@@ -84,14 +84,11 @@ static_text_init_loop:
 
 bcd_init:
   ; Init bcd data in sram to all 0(0x00)
-  ldi XH, hi8(bcd)
-  ldi XL, lo8(bcd)
   ldi r16, 0
-  ldi r17, 4
-bcd_init_loop:
-  st X+, r16
-  dec r17
-  brne bcd_init_loop
+  sts bcd + 0, r16
+  sts bcd + 1, r16
+  sts bcd + 2, r16
+  sts bcd + 3, r16
   ret
 
 show_static_loop:
