@@ -1,6 +1,9 @@
 ; four_digit.S by ShiratoriYuuka314
-; PB7:0 for segment select
-; PD7:4 for digit select
+; For use on ATmega328P microcontroller
+; Using common-cathode 4-digit 7-seg display
+; PB7:0 for segment select a,b,c,d,e,f,g,dp
+; PD7:4 for digit select 1,2,3,4
+; Running on calibrated internal RC oscillator @ 8MHz
 ; This program is completely bare-metal and doesn't need to link standard start file
 
 ; Set RAMEND addr
@@ -13,7 +16,6 @@
 .equ PORTB, 0x05
 .equ PORTD, 0x0B
 ; Set text to show on 7-seg, 4-digit number only
-; .equ TEXT, '2026'
 .macro TEXT
   .ascii "1234"
 .endm
@@ -43,8 +45,8 @@ _start:
   ldi r16, 0xFF ; Set seg sel PB7:0 to output
   out DDRB, r16
 
-  rcall seg_table_init
-  rcall text_to_show_init
+  rcall seg_table_init ; Load seg_table into sram
+  rcall text_to_show_init ; Load text_to_show into sram
   rjmp test_loop
 
 seg_table_init:
@@ -81,7 +83,7 @@ test_loop:
   ldi XH, hi8(text_to_show)
   ldi XL, lo8(text_to_show)
   ld r16, X
-  subi r16, 0x30
+  subi r16, 0x30 ; Convert from ascii code to raw number
   ldi XH, hi8(seg_table)
   ldi XL, lo8(seg_table)
   add XL, r16
@@ -90,11 +92,10 @@ test_loop:
   rcall delay
 
   rcall sel_digit_2
-  ; lds r16, seg_table + 0
   ldi XH, hi8(text_to_show)
   ldi XL, lo8(text_to_show + 1)
   ld r16, X
-  subi r16, 0x30
+  subi r16, 0x30 ; Convert from ascii code to raw number
   ldi XH, hi8(seg_table)
   ldi XL, lo8(seg_table)
   add XL, r16
@@ -103,11 +104,10 @@ test_loop:
   rcall delay
 
   rcall sel_digit_3
-  ; lds r16, seg_table + 2
   ldi XH, hi8(text_to_show)
   ldi XL, lo8(text_to_show + 2)
   ld r16, X
-  subi r16, 0x30
+  subi r16, 0x30 ; Convert from ascii code to raw number
   ldi XH, hi8(seg_table)
   ldi XL, lo8(seg_table)
   add XL, r16
@@ -116,11 +116,10 @@ test_loop:
   rcall delay
 
   rcall sel_digit_4
-  ; lds r16, seg_table + 6
   ldi XH, hi8(text_to_show)
   ldi XL, lo8(text_to_show + 3)
   ld r16, X
-  subi r16, 0x30
+  subi r16, 0x30 ; Convert from ascii code to raw number
   ldi XH, hi8(seg_table)
   ldi XL, lo8(seg_table)
   add XL, r16
@@ -167,7 +166,7 @@ sel_digit_4:
   ret
 
 delay:
-  ldi r16, 255
+  ldi r16, 255  ; Simple delay subroutine of 255 rounds, ~770 clk cycles or ~96 us @ 8MHz
 delay_loop:
   dec r16
   brne delay_loop
