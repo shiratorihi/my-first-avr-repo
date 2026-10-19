@@ -24,7 +24,7 @@
 
 .section .bss
 seg_table: .space 10
-text_to_show: .space 4
+static_text: .space 4
 
 .section .text
 .global _start
@@ -48,7 +48,7 @@ _start:
   out DDRB, r16
 
   rcall seg_table_init ; Load seg_table into sram
-  rcall text_to_show_init ; Load text_to_show into sram
+  rcall static_text_init ; Load text_to_show into sram
   rjmp show_static_loop
 
 seg_table_init:
@@ -65,25 +65,25 @@ seg_table_init_loop:
   brne seg_table_init_loop
   ret
 
-text_to_show_init:
-  ; Load text to show from flash and store in sram
-  ldi ZH, hi8(text_to_show_flash)
-  ldi ZL, lo8(text_to_show_flash)
-  ldi XH, hi8(text_to_show)
-  ldi XL, lo8(text_to_show)
+static_text_init:
+  ; Load static text to show from flash and store in sram
+  ldi ZH, hi8(static_text_flash)
+  ldi ZL, lo8(static_text_flash)
+  ldi XH, hi8(static_text)
+  ldi XL, lo8(static_text)
   ldi r17, 4
-text_to_show_init_loop:
+static_text_init_loop:
   lpm r16, Z+
   st X+, r16
   dec r17
-  brne text_to_show_init_loop
+  brne static_text_init_loop
   ret
 
 show_static_loop:
   ; Simple text showing by dynamic scanning
   rcall sel_digit_1
-  ldi XH, hi8(text_to_show)
-  ldi XL, lo8(text_to_show)
+  ldi XH, hi8(static_text)
+  ldi XL, lo8(static_text)
   ld r16, X
   subi r16, 0x30 ; Convert from ascii code to raw number
   ldi XH, hi8(seg_table)
@@ -96,8 +96,8 @@ show_static_loop:
   rcall delay
 
   rcall sel_digit_2
-  ldi XH, hi8(text_to_show)
-  ldi XL, lo8(text_to_show + 1)
+  ldi XH, hi8(static_text)
+  ldi XL, lo8(static_text + 1)
   ld r16, X
   subi r16, 0x30 ; Convert from ascii code to raw number
   ldi XH, hi8(seg_table)
@@ -110,8 +110,8 @@ show_static_loop:
   rcall delay
 
   rcall sel_digit_3
-  ldi XH, hi8(text_to_show)
-  ldi XL, lo8(text_to_show + 2)
+  ldi XH, hi8(static_text)
+  ldi XL, lo8(static_text + 2)
   ld r16, X
   subi r16, 0x30 ; Convert from ascii code to raw number
   ldi XH, hi8(seg_table)
@@ -124,8 +124,8 @@ show_static_loop:
   rcall delay
 
   rcall sel_digit_4
-  ldi XH, hi8(text_to_show)
-  ldi XL, lo8(text_to_show + 3)
+  ldi XH, hi8(static_text)
+  ldi XL, lo8(static_text + 3)
   ld r16, X
   subi r16, 0x30 ; Convert from ascii code to raw number
   ldi XH, hi8(seg_table)
@@ -197,5 +197,5 @@ seg_table_flash:
   .byte 0xFE ; 8
   .byte 0xF6 ; 9
 
-text_to_show_flash:
+static_text_flash:
   TEXT
