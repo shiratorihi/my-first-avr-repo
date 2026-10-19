@@ -25,6 +25,7 @@
 .section .bss
 seg_table: .space 10
 static_text: .space 4
+bcd: .space 4
 
 .section .text
 .global _start
@@ -49,6 +50,8 @@ _start:
 
   rcall seg_table_init ; Load seg_table into sram
   rcall static_text_init ; Load text_to_show into sram
+  rcall bcd_init
+
   rjmp show_static_loop
 
 seg_table_init:
@@ -77,6 +80,18 @@ static_text_init_loop:
   st X+, r16
   dec r17
   brne static_text_init_loop
+  ret
+
+bcd_init:
+  ; Init bcd data in sram to all 0(0x00)
+  ldi XH, hi8(bcd)
+  ldi XL, lo8(bcd)
+  ldi r16, 0
+  ldi r17, 4
+bcd_init_loop:
+  st X+, r16
+  dec r17
+  brne bcd_init_loop
   ret
 
 show_static_loop:
