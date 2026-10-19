@@ -34,6 +34,7 @@ bcd: .space 4
   jmp _start ; 0x0000 RESET
 
 .org 0x0068 ; Start of user code section
+;-------------------------------------------------------------------------------
 _start:
   ; Stack Pointer init
   ldi r16, lo8(RAMEND) ; 0xFF
@@ -50,9 +51,10 @@ _start:
 
   rcall seg_table_init ; Load seg_table into sram
   rcall static_text_init ; Load text_to_show into sram
-  rcall bcd_init
+  rcall bcd_init ; Init bcd data to all zero in sram
 
   rjmp show_static_loop
+;-------------------------------------------------------------------------------
 
 seg_table_init:
   ; Load seg table from flash and store in sram
@@ -152,8 +154,9 @@ show_static_loop:
   rjmp show_static_loop
 
 sel_digit_1:
+  ; Change digit sel to digit 1
   ldi r16, 0x00
-  out PORTB, r16
+  out PORTB, r16 ; Blanking between digits
   in r16, PORTD
   andi r16, 0x0F
   ori r16, 0x80
@@ -161,8 +164,9 @@ sel_digit_1:
   ret
 
 sel_digit_2:
+  ; Change digit sel to digit 2
   ldi r16, 0x00
-  out PORTB, r16
+  out PORTB, r16 ; Blanking between digits
   in r16, PORTD
   andi r16, 0x0F
   ori r16, 0x40
@@ -170,8 +174,9 @@ sel_digit_2:
   ret
 
 sel_digit_3:
+  ; Change digit sel to digit 3
   ldi r16, 0x00
-  out PORTB, r16
+  out PORTB, r16 ; Blanking between digits
   in r16, PORTD
   andi r16, 0x0F
   ori r16, 0x20
@@ -179,8 +184,9 @@ sel_digit_3:
   ret
 
 sel_digit_4:
+  ; Change digit sel to digit 4
   ldi r16, 0x00
-  out PORTB, r16
+  out PORTB, r16 ; Blanking between digits
   in r16, PORTD
   andi r16, 0x0F
   ori r16, 0x10
@@ -188,7 +194,7 @@ sel_digit_4:
   ret
 
 delay:
-  ldi r16, 255  ; Simple delay subroutine of 255 rounds, ~770 clk cycles or ~96 us @ 8MHz
+  ldi r16, 255 ; Simple delay subroutine of 255 rounds, ~770 clk cycles or ~96 us @ 8MHz
 delay_loop:
   dec r16
   brne delay_loop
