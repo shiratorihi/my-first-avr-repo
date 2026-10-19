@@ -19,7 +19,7 @@
 .equ PORTD, 0x0B
 ; Set text to show on 7-seg, 4-digit number only
 .macro TEXT
-  .ascii "1234"
+  .ascii "0721"
 .endm
 
 .section .bss
