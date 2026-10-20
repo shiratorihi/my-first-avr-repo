@@ -19,8 +19,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_options(
     -mmcu=${MCU}
     -DF_CPU=${F_CPU}
-    -Wall
-    -Wextra
+    # -Wall
+    # -Wextra
+    -Wa,--warn
     # -mrelax
     # -ffunction-sections
     # -fdata-sections
