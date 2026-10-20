@@ -24,7 +24,7 @@ add_compile_options(
     # -mrelax
     # -ffunction-sections
     # -fdata-sections
-    -g
+    # -g
 )
 
 set(SRC_FILE "main.S" CACHE STRING "Source files to build")
