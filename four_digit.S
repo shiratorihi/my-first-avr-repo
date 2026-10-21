@@ -53,7 +53,10 @@ _start:
   rcall static_text_init ; Load text_to_show into sram
   rcall bcd_init ; Init bcd data to all zero in sram
 
-  rjmp show_static_loop
+  ; rjmp show_static_loop
+_start_loop:
+  rcall show_bcd
+  rjmp _start_loop
 ;-------------------------------------------------------------------------------
 
 seg_table_init:
@@ -152,6 +155,61 @@ show_static_loop:
   rcall delay
 
   rjmp show_static_loop
+
+show_bcd:
+  rcall sel_digit_1
+  ldi XH, hi8(bcd)
+  ldi XL, lo8(bcd + 0)
+  ld r16, X
+  ldi XH, hi8(seg_table)
+  ldi XL, lo8(seg_table)
+  add XL, r16
+  clr r0
+  adc XH, r0
+  ld r16, X
+  out PORTB, r16
+  rcall delay
+
+  rcall sel_digit_2
+  ldi XH, hi8(bcd)
+  ldi XL, lo8(bcd + 1)
+  ld r16, X
+  ldi XH, hi8(seg_table)
+  ldi XL, lo8(seg_table)
+  add XL, r16
+  clr r0
+  adc XH, r0
+  ld r16, X
+  out PORTB, r16
+  rcall delay
+
+  rcall sel_digit_3
+  ldi XH, hi8(bcd)
+  ldi XL, lo8(bcd + 2)
+  ld r16, X
+  ldi XH, hi8(seg_table)
+  ldi XL, lo8(seg_table)
+  add XL, r16
+  clr r0
+  adc XH, r0
+  ld r16, X
+  out PORTB, r16
+  rcall delay
+
+  rcall sel_digit_4
+  ldi XH, hi8(bcd)
+  ldi XL, lo8(bcd + 3)
+  ld r16, X
+  ldi XH, hi8(seg_table)
+  ldi XL, lo8(seg_table)
+  add XL, r16
+  clr r0
+  adc XH, r0
+  ld r16, X
+  out PORTB, r16
+  rcall delay
+
+  ret
 
 sel_digit_1:
   ; Change digit sel to digit 1
