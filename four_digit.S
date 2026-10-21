@@ -57,6 +57,7 @@ _start:
 _start_loop:
   rcall show_bcd
   rcall inc_bcd
+  rcall delay_long
   rjmp _start_loop
 ;-------------------------------------------------------------------------------
 
@@ -292,10 +293,23 @@ sel_digit_4:
   ret
 
 delay:
-  ldi r16, 255 ; Simple delay subroutine of 255 rounds, ~770 clk cycles or ~96 us @ 8MHz
+  ; Simple delay subroutine of 255 rounds, ~770 clk cycles or ~96 us @ 8MHz
+  ldi r16, 255
 delay_loop:
   dec r16
   brne delay_loop
+  ret
+
+delay_long:
+  ; Simple 2 layer nested delay subroutine of 255^2 rounds, ~196,000 clk cycles or ~24.5 ms @ 8MHz
+  ldi r16, 255
+delay_long_outer:
+  ldi r17, 255
+delay_long_inner:
+  dec r17
+  brne delay_long_inner
+  dec r16
+  brne delay_long_outer
   ret
 
 guard_loop:
