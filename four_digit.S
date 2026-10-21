@@ -21,6 +21,10 @@
 .macro TEXT
   .ascii "0721"
 .endm
+; Set long delay duration in main routine
+.macro DELAYCYCLES
+  .byte 0x00, 0x7F
+.endm
 
 .section .bss
 seg_table: .space 10
@@ -103,10 +107,17 @@ bcd_init:
   ret
 
 delay_buf_init:
-  ; Init long delay buffer in sram to all 1(0xFF)
-  ldi r16, 255
-  sts delay_buf + 0, r16
-  sts delay_buf + 1, r16
+  ; Load long delay period from flash and store in sram
+  ldi ZH, hi8(delay_buf_flash)
+  ldi ZL, lo8(delay_buf_flash)
+  ldi XH, hi8(delay_buf)
+  ldi XL, lo8(delay_buf)
+  ldi r17, 2
+delay_buf_init_loop:
+  lpm r16, Z+
+  st X+, r16
+  dec r17
+  brne delay_buf_init_loop
   ret
 
 show_static_loop:
@@ -348,9 +359,10 @@ delay_long_check:
   brne end_delay_long_check
   cp r17, r18
   brne end_delay_long_check
-  ldi r18, 255
-  st -X, r18
-  st -X, r18
+  rcall delay_buf_init
+  ; ldi r18, 255
+  ; st -X, r18
+  ; st -X, r18
   ldi r24, 1 ; Indicates delay buffer is empty
   ret
 end_delay_long_check:
@@ -374,3 +386,6 @@ seg_table_flash:
 
 static_text_flash:
   TEXT
+
+delay_buf_flash:
+  DELAYCYCLES
