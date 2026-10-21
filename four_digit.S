@@ -59,7 +59,7 @@ _start:
   rcall bcd_init ; Init bcd data to all zero in sram
   rcall delay_buf_init ; Init long delay buffer to all one in sram
 
-  ; rjmp show_static_loop
+  ; rjmp show_static_loop ; Uncommon this line to show static text
 _start_loop:
   rcall show_bcd
   rcall delay_long_check
@@ -321,18 +321,6 @@ delay:
 delay_loop:
   dec r16
   brne delay_loop
-  ret
-
-delay_long:
-  ; Simple 2 layer nested delay subroutine of 255^2 rounds, ~196,000 clk cycles or ~24.5 ms @ 8MHz
-  ldi r16, 255
-delay_long_outer:
-  ldi r17, 255
-delay_long_inner:
-  dec r17
-  brne delay_long_inner
-  dec r16
-  brne delay_long_outer
   ret
 
 dec_delay_long:
