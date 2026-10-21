@@ -59,7 +59,7 @@ _start:
   rcall bcd_init ; Init bcd data to all zero in sram
   rcall delay_buf_init ; Init long delay buffer to all one in sram
 
-  ; rjmp show_static_loop ; Uncommon this line to show static text
+  ; rjmp show_static_loop ; Uncomment this line to show static text
 _start_loop:
   rcall show_bcd
   rcall delay_long_tick
