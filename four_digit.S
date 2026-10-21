@@ -23,7 +23,7 @@
 .endm
 ; Set long delay duration in main routine
 .macro DELAYCYCLES
-  .byte 0x00, 0x7F
+  .byte 0x00, 0x3F
 .endm
 
 .section .bss
