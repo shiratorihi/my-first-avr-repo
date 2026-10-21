@@ -170,6 +170,7 @@ show_static_loop:
   rjmp show_static_loop
 
 show_bcd:
+  ; Show bcd number on 7-seg for 1 scan cycle
   rcall sel_digit_1
   ldi XH, hi8(bcd)
   ldi XL, lo8(bcd + 0)
@@ -233,7 +234,7 @@ inc_bcd:
   ld r16, X
   inc r16
   cp r17, r16
-  brne inc_bcd_end
+  brne inc_bcd_end ; No carry, skip to end
   st X, r18
 
   ldi XH, hi8(bcd)
@@ -241,7 +242,7 @@ inc_bcd:
   ld r16, X
   inc r16
   cp r17, r16
-  brne inc_bcd_end
+  brne inc_bcd_end ; No carry, skip to end
   st X, r18
 
   ldi XH, hi8(bcd)
@@ -249,7 +250,7 @@ inc_bcd:
   ld r16, X
   inc r16
   cp r17, r16
-  brne inc_bcd_end
+  brne inc_bcd_end ; No carry, skip to end
   st X, r18
 
   ldi XH, hi8(bcd)
@@ -257,7 +258,7 @@ inc_bcd:
   ld r16, X
   inc r16
   cp r17, r16
-  brne inc_bcd_end
+  brne inc_bcd_end ; No carry, skip to end
   clr r16
 inc_bcd_end:
   st X, r16
@@ -324,6 +325,7 @@ delay_long_inner:
   ret
 
 dec_delay_long:
+  ; Delay tick of long delay in main routine
   ldi r18, 0
   ldi XH, hi8(delay_buf)
   ldi XL, lo8(delay_buf)
@@ -336,6 +338,7 @@ dec_delay_long:
   ret
 
 delay_long_check:
+  ; Check if long delay buffer is 0, reload if needed, returns status through r24
   ldi XH, hi8(delay_buf)
   ldi XL, lo8(delay_buf)
   ld r16, X+
@@ -348,10 +351,10 @@ delay_long_check:
   ldi r18, 255
   st -X, r18
   st -X, r18
-  ldi r24, 1
+  ldi r24, 1 ; Indicates delay buffer is empty
   ret
 end_delay_long_check:
-  ldi r24, 0
+  ldi r24, 0 ; Indicates delay is not done yet
   ret
 
 guard_loop:
