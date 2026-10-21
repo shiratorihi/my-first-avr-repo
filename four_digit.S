@@ -2,7 +2,7 @@
 
 ; four_digit.S by ShiratoriYuuka314
 ; For use on ATmega328P microcontroller
-; Using common-cathode 4-digit 7-seg display driven by S8050 BJT
+; Using 3641AS common-cathode 4-digit 7-seg display driven by S8050 BJT
 ; PB7:0 for segment select a,b,c,d,e,f,g,dp
 ; PD7:4 for digit select 1,2,3,4
 ; Running on calibrated internal RC oscillator @ 8MHz
