@@ -26,6 +26,7 @@
 seg_table: .space 10
 static_text: .space 4
 bcd: .space 4
+delay_buf: .space 2
 
 .section .text
 .global _start
@@ -52,12 +53,15 @@ _start:
   rcall seg_table_init ; Load seg_table into sram
   rcall static_text_init ; Load text_to_show into sram
   rcall bcd_init ; Init bcd data to all zero in sram
+  rcall delay_buf_init ; Init long delay buffer to all one in sram
 
   ; rjmp show_static_loop
 _start_loop:
   rcall show_bcd
+  rcall delay_long_check
+  sbrc r24, 0
   rcall inc_bcd
-  rcall delay_long
+  rcall dec_delay_long
   rjmp _start_loop
 ;-------------------------------------------------------------------------------
 
@@ -96,6 +100,13 @@ bcd_init:
   sts bcd + 1, r16
   sts bcd + 2, r16
   sts bcd + 3, r16
+  ret
+
+delay_buf_init:
+  ; Init long delay buffer in sram to all 1(0xFF)
+  ldi r16, 255
+  sts delay_buf + 0, r16
+  sts delay_buf + 1, r16
   ret
 
 show_static_loop:
@@ -310,6 +321,37 @@ delay_long_inner:
   brne delay_long_inner
   dec r16
   brne delay_long_outer
+  ret
+
+dec_delay_long:
+  ldi r18, 0
+  ldi XH, hi8(delay_buf)
+  ldi XL, lo8(delay_buf)
+  ld r16, X+
+  ld r17, X+
+  subi r17, 1
+  sbc r16, r18
+  st -X, r17
+  st -X, r16
+  ret
+
+delay_long_check:
+  ldi XH, hi8(delay_buf)
+  ldi XL, lo8(delay_buf)
+  ld r16, X+
+  ld r17, X+
+  ldi r18, 0
+  cp r16, r18
+  brne end_delay_long_check
+  cp r17, r18
+  brne end_delay_long_check
+  ldi r18, 255
+  st -X, r18
+  st -X, r18
+  ldi r24, 1
+  ret
+end_delay_long_check:
+  ldi r24, 0
   ret
 
 guard_loop:
