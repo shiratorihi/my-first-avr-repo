@@ -56,6 +56,7 @@ _start:
   ; rjmp show_static_loop
 _start_loop:
   rcall show_bcd
+  rcall inc_bcd
   rjmp _start_loop
 ;-------------------------------------------------------------------------------
 
@@ -209,6 +210,45 @@ show_bcd:
   out PORTB, r16
   rcall delay
 
+  ret
+
+inc_bcd:
+  ; Increase bcd number by 1 and handle carry/overflow
+  ldi r17, 10
+  ldi r18, 0
+  ldi XH, hi8(bcd)
+  ldi XL, lo8(bcd + 3)
+  ld r16, X
+  inc r16
+  cp r17, r16
+  brne inc_bcd_end
+  st X, r18
+
+  ldi XH, hi8(bcd)
+  ldi XL, lo8(bcd + 2)
+  ld r16, X
+  inc r16
+  cp r17, r16
+  brne inc_bcd_end
+  st X, r18
+
+  ldi XH, hi8(bcd)
+  ldi XL, lo8(bcd + 1)
+  ld r16, X
+  inc r16
+  cp r17, r16
+  brne inc_bcd_end
+  st X, r18
+
+  ldi XH, hi8(bcd)
+  ldi XL, lo8(bcd + 0)
+  ld r16, X
+  inc r16
+  cp r17, r16
+  brne inc_bcd_end
+  clr r16
+inc_bcd_end:
+  st X, r16
   ret
 
 sel_digit_1:
