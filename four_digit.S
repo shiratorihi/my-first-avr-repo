@@ -62,10 +62,9 @@ _start:
   ; rjmp show_static_loop ; Uncommon this line to show static text
 _start_loop:
   rcall show_bcd
-  rcall delay_long_check
+  rcall delay_long_tick
   sbrc r24, 0
   rcall inc_bcd
-  rcall dec_delay_long
   rjmp _start_loop
 ;-------------------------------------------------------------------------------
 
@@ -323,37 +322,25 @@ delay_loop:
   brne delay_loop
   ret
 
-dec_delay_long:
-  ; Delay tick of long delay in main routine
-  ldi r18, 0
-  ldi XH, hi8(delay_buf)
-  ldi XL, lo8(delay_buf)
-  ld r16, X+
-  ld r17, X+
-  subi r17, 1
-  sbc r16, r18
-  st -X, r17
-  st -X, r16
-  ret
-
-delay_long_check:
-  ; Check if long delay buffer is 0, reload if needed, returns status through r24
+delay_long_tick:
+  ; Check if long delay buffer is 0, reload or decrease if needed, returns status through r24
   ldi XH, hi8(delay_buf)
   ldi XL, lo8(delay_buf)
   ld r16, X+
   ld r17, X+
   ldi r18, 0
   cp r16, r18
-  brne end_delay_long_check
+  brne end_delay_long_tick
   cp r17, r18
-  brne end_delay_long_check
+  brne end_delay_long_tick
   rcall delay_buf_init
-  ; ldi r18, 255
-  ; st -X, r18
-  ; st -X, r18
   ldi r24, 1 ; Indicates delay buffer is empty
   ret
-end_delay_long_check:
+end_delay_long_tick:
+  subi r17, 1 ; Decrease delay buffer by 1
+  sbc r16, r18
+  st -X, r17
+  st -X, r16
   ldi r24, 0 ; Indicates delay is not done yet
   ret
 
