@@ -61,9 +61,9 @@ Each subprojects can be individually build, for example `four_digit.S`:
 
 1. Create a new directory for storing build output.
    You can choose any name you want, but make sure to start with 'build'
-   to further work with `makeall.sh`
+   to further work with `makeall.sh`:
 
-        mkdir build_four_digits
+        mkdir build_four_digit
 
 2. Enter the directory, and use CMake to generate Makefile build system:
 
