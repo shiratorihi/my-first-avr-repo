@@ -30,7 +30,7 @@ All subprojects are made with ATmega328P microcontroller chip on a breadboard.
 
 ### In progress
 
-- _Currently nothing_
+- serial_prime.S
 
 ### Planned
 
