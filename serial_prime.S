@@ -4,7 +4,6 @@
 .equ SPL, 0x3D
 .equ SPH, 0x3E
 
-
 .section .text
 .global _start
 .org 0x0000
