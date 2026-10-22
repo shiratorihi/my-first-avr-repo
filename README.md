@@ -43,7 +43,7 @@ All subprojects are made with ATmega328P microcontroller chip on a breadboard.
 ### Hardware/Software Requirements
 
 - `avr-gcc toolset`*
-- `CMake >= version 3.20`**
+- `CMake >= version 3.10`**
 - `USBasp programmer or any other supported programmer`***
 - `avrdude`
 - `ATmega328P chip`
