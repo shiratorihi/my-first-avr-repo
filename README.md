@@ -58,7 +58,7 @@ Just make sure to use corresponding `-c` option with avrdude.
 
 ### Building and flashing
 
-Each subprojects can be individually built, for example `four_digit.S`:
+Each subproject can be individually built, for example `four_digit.S`:
 
 1. Create a new directory for storing build output.
    You can choose any name you want, but make sure to start with 'build'
@@ -74,7 +74,7 @@ Each subprojects can be individually built, for example `four_digit.S`:
 
         make
 
-4. Flashing the `.hex` file into the microcontroller's flash:
+4. Flash the `.hex` file into the microcontroller's flash:
 
         avrdude -p m328p -c usbasp -U flash:w:four_digit.hex:i
 
