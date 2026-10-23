@@ -25,13 +25,14 @@
 ; Set string and its size
 .equ HELLOWORLDSIZE, 13
 .macro HELLOWORLD
-  .string "Hello world!"
+  .asciz "Hello world!"
 .endm
 
 .section .bss
 tx_buf: .space TXBUFSIZE
 tx_buf_head: .space 1
 tx_buf_tail: .space 1
+
 hello_world: .space HELLOWORLDSIZE
 
 .section .text
@@ -56,6 +57,13 @@ _start:
   rcall hello_world_init
 
   rcall uart_init
+  sei
+  
+  ldi XH, hi8(hello_world)
+  ldi XL, lo8(hello_world)
+  ldi r24, HELLOWORLDSIZE
+  rcall enqueue_transmit
+
 end_loop:
   rjmp end_loop
 ;-------------------------------------------------------------------------------
@@ -92,7 +100,52 @@ uart_init:
   sts UCSR0B, r16
   ret
 
+enqueue_transmit:
+  ; Load data space address of data to enqueue to X and length to r24 before calling
+  tst r24
+  breq enqueue_transmit_end
+enqueue_transmit_loop:
+  ld r22, X+
+  rcall transmit_fillbyte
+  tst r20
+  brne enqueue_transmit_end
+  dec r24
+  brne enqueue_transmit_loop
+enqueue_transmit_end:
+  ret
+
+transmit_fillbyte:
+  ; Load byte to fill into tx_buf to r22 before calling
+  ; Returns 0 to r20 if OK, 1 if buffer full, don't change r22 and r24
+  ldi YH, hi8(tx_buf)
+  ldi YL, lo8(tx_buf)
+  lds r16, tx_buf_head
+  inc r16
+  andi r16, TXBUFMASK
+  lds r17, tx_buf_tail
+  cp r16, r17
+  breq transmit_fillbyte_full ; Skip and abandon byte if buffer full
+  lds r16, tx_buf_head
+  mov r18, r16
+  add YL, r16
+  ldi r16, 0
+  adc YH, r16
+  st Y, r22
+  inc r18
+  andi r18, TXBUFMASK
+  sts tx_buf_head, r18
+  lds r16, UCSR0B
+  sbr r16, (1 << 5)      ; Set UDRIE0
+  sts UCSR0B, r16
+  ldi r20, 0
+  ret
+transmit_fillbyte_full:
+  ldi r20, 1
+  ret
+
+
 _usart_udre_isr:
+  ; Keep transmitting the next byte, or disabling USART_UDRE interrupt
   push r16
   push r17
   push XH
@@ -127,6 +180,10 @@ usart_udre_end:
   pop r17
   pop r16
   reti
+
+guard_loop:
+  ; Prevent program from running into data area.
+  rjmp guard_loop
 
 hello_world_flash:
   HELLOWORLD
