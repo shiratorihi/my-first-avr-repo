@@ -1,3 +1,5 @@
+; vim: set filetype=asm:
+
 ; Set RAMEND addr
 .equ RAMEND, 0x08FF
 ; Set SFR I/O addr
