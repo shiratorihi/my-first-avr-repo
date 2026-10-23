@@ -23,9 +23,9 @@
 .equ TXBUFMASK, TXBUFSIZE - 1
 
 ; Set string and its size
-.equ HELLOWORLDSIZE, 13
+.equ HELLOWORLDSIZE, 15
 .macro HELLOWORLD
-  .asciz "Hello world!"
+  .asciz "Hello world!\r\n"
 .endm
 
 .section .bss
