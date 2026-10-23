@@ -22,11 +22,17 @@
 .equ TXBUFSIZE, 32
 .equ TXBUFMASK, TXBUFSIZE - 1
 
+; Set string and its size
+.equ HELLOWORLDSIZE, 13
+.macro HELLOWORLD
+  .string "Hello world!"
+.endm
+
 .section .bss
 tx_buf: .space TXBUFSIZE
 tx_buf_head: .space 1
 tx_buf_tail: .space 1
-hello_world: .space 
+hello_world: .space HELLOWORLDSIZE
 
 .section .text
 .global _start
@@ -47,12 +53,26 @@ _start:
   ldi r16, hi8(RAMEND) ; 0x08
   out SPH, r16
 
+  rcall hello_world_init
+
   rcall uart_init
-  ldi r16, 'A'
-  sts UDR0, r16
 end_loop:
   rjmp end_loop
 ;-------------------------------------------------------------------------------
+
+hello_world_init:
+  ; Load string from flash to sram
+  ldi ZH, hi8(hello_world_flash)
+  ldi ZL, lo8(hello_world_flash)
+  ldi XH, hi8(hello_world)
+  ldi XL, lo8(hello_world)
+  ldi r17, HELLOWORLDSIZE
+hello_world_init_loop:
+  lpm r16, Z+
+  st X+, r16
+  dec r17
+  brne hello_world_init_loop
+  ret
 
 uart_init:
   ; Set baudrate
@@ -109,4 +129,4 @@ usart_udre_end:
   reti
 
 hello_world_flash:
-  .string "Hello world!"
+  HELLOWORLD
