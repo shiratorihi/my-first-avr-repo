@@ -5,6 +5,7 @@
 ; Set SFR I/O addr
 .equ SPL, 0x3D
 .equ SPH, 0x3E
+.equ SREG, 0x3F
 .equ DDRD, 0x0A ; 1:0 -> TX, RX
 ; Set SFR Data addr
 .equ UCSR0A, 0xC0 ; 7:0 -> RXC0, TXC0, UDRE0, FE0, DOR0, UPE0, U2X0, MPCM0
@@ -17,12 +18,25 @@
 ; Set baudrate to 38400 @ 8MHz clock, UART double speed mode disabled.
 ; (Testing accuracy for internal calibrated RC oscillator)
 .equ BAUDSET, 12
+; Set tx buffer size, must be power of 2, max 256
+.equ TXBUFSIZE, 32
+.equ TXBUFMASK, TXBUFSIZE - 1
+
+.section .bss
+tx_buf: .space TXBUFSIZE
+tx_buf_head: .space 1
+tx_buf_tail: .space 1
+hello_world: .space 
 
 .section .text
 .global _start
 .org 0x0000
 
-  jmp _start ; 0x0000 RESET
+  rjmp _start ; RESET
+
+.org 0x004C
+
+  rjmp _usart_udre_isr ; USART_UDRE
 
 .org 0x0068 ; Start of user code section
 ;-------------------------------------------------------------------------------
@@ -34,6 +48,10 @@ _start:
   out SPH, r16
 
   rcall uart_init
+  ldi r16, 'A'
+  sts UDR0, r16
+end_loop:
+  rjmp end_loop
 ;-------------------------------------------------------------------------------
 
 uart_init:
@@ -43,9 +61,52 @@ uart_init:
   sts UBRR0H, r16
   sts UBRR0L, r17
   ; Keep all other UART options default
+  ; Set tx buffer length to 0
+  ldi r16, 0
+  sts tx_buf_head, r16
+  sts tx_buf_tail, r16
   ; Set TX pin output
   sbi DDRD, 1 ; TX(PD1)
   ; Enable transmitter
   ldi r16, 1 << 3 ; TXEN0
   sts UCSR0B, r16
   ret
+
+_usart_udre_isr:
+  push r16
+  push r17
+  push XH
+  push XL
+  in r16, SREG
+  push r16
+  lds r16, tx_buf_head
+  lds r17, tx_buf_tail
+  cp r16, r17
+  brne keep_transmit
+  ; Clear UDRIE0 if tx_buf is empty
+  lds r16, UCSR0B
+  cbr r16, 1 << 5 ; UDRIE0
+  sts UCSR0B, r16
+  rjmp usart_udre_end
+keep_transmit:
+  ldi r16, 0
+  ldi XH, hi8(tx_buf)
+  ldi XL, lo8(tx_buf)
+  add XL, r17
+  adc XH, r16
+  ld r16, X
+  sts UDR0, r16
+  inc r17
+  andi r17, TXBUFMASK
+  sts tx_buf_tail, r17
+usart_udre_end:
+  pop r16
+  out SREG, r16
+  pop XL
+  pop XH
+  pop r17
+  pop r16
+  reti
+
+hello_world_flash:
+  .string "Hello world!"
