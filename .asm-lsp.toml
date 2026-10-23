@@ -3,3 +3,7 @@ version = "0.1"
 [default_config]
 assembler = "gas"
 instruction_set = "AVR"
+
+[default_config.opts]
+compiler = "avr-gcc"
+compile_flags_txt = ["-mmcu=atmega328p"]
