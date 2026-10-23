@@ -57,12 +57,12 @@ _start:
   rcall hello_world_init
 
   rcall uart_init
-  sei
+  sei ; Enable global interrupt
   
   ldi XH, hi8(hello_world)
   ldi XL, lo8(hello_world)
   ldi r24, HELLOWORLDSIZE
-  rcall enqueue_transmit
+  rcall transmit_enqueue ; Load X and r24 before calling
 
 end_loop:
   rjmp end_loop
@@ -89,29 +89,29 @@ uart_init:
   sts UBRR0H, r16
   sts UBRR0L, r17
   ; Keep all other UART options default
-  ; Set tx buffer length to 0
+  ; Init tx buffer head and tail index to 0
   ldi r16, 0
   sts tx_buf_head, r16
   sts tx_buf_tail, r16
-  ; Set TX pin output
+  ; Set TX pin to output
   sbi DDRD, 1 ; TX(PD1)
   ; Enable transmitter
   ldi r16, 1 << 3 ; TXEN0
   sts UCSR0B, r16
   ret
 
-enqueue_transmit:
+transmit_enqueue:
   ; Load data space address of data to enqueue to X and length to r24 before calling
   tst r24
-  breq enqueue_transmit_end
-enqueue_transmit_loop:
+  breq transmit_enqueue_end
+transmit_enqueue_loop:
   ld r22, X+
   rcall transmit_fillbyte
   tst r20
-  brne enqueue_transmit_end
+  brne transmit_enqueue_end
   dec r24
-  brne enqueue_transmit_loop
-enqueue_transmit_end:
+  brne transmit_enqueue_loop
+transmit_enqueue_end:
   ret
 
 transmit_fillbyte:
@@ -121,41 +121,44 @@ transmit_fillbyte:
   ldi YL, lo8(tx_buf)
   lds r16, tx_buf_head
   inc r16
-  andi r16, TXBUFMASK
+  andi r16, TXBUFMASK ; Loopback when overflow
   lds r17, tx_buf_tail
   cp r16, r17
   breq transmit_fillbyte_full ; Skip and abandon byte if buffer full
   lds r16, tx_buf_head
-  mov r18, r16
+  mov r18, r16 ; Save a copy of head index
   add YL, r16
   ldi r16, 0
   adc YH, r16
-  st Y, r22
-  inc r18
-  andi r18, TXBUFMASK
-  sts tx_buf_head, r18
+  st Y, r22 ; Load byte to ring buffer
+  inc r18 ; Increase head index by 1
+  andi r18, TXBUFMASK ; Loopback when overflow
+  sts tx_buf_head, r18 ; Update new head index value
   lds r16, UCSR0B
-  sbr r16, (1 << 5)      ; Set UDRIE0
-  sts UCSR0B, r16
-  ldi r20, 0
+  sbr r16, 1 << 5 ; UDRIE0
+  sts UCSR0B, r16 ; Set UDRIE0 to ensure interrupt enabled
+  ldi r20, 0 ; OK return
   ret
 transmit_fillbyte_full:
-  ldi r20, 1
+  ldi r20, 1 ; Full return
   ret
 
 
 _usart_udre_isr:
   ; Keep transmitting the next byte, or disabling USART_UDRE interrupt
+  ; Context saving
   push r16
   push r17
   push XH
   push XL
   in r16, SREG
   push r16
+
   lds r16, tx_buf_head
   lds r17, tx_buf_tail
   cp r16, r17
-  brne keep_transmit
+  brne keep_transmit ; Check if head index is as same as tail index, which means buffer empty
+
   ; Clear UDRIE0 if tx_buf is empty
   lds r16, UCSR0B
   cbr r16, 1 << 5 ; UDRIE0
@@ -168,11 +171,12 @@ keep_transmit:
   add XL, r17
   adc XH, r16
   ld r16, X
-  sts UDR0, r16
+  sts UDR0, r16 ; Load byte to UDR0 to be sent
   inc r17
-  andi r17, TXBUFMASK
-  sts tx_buf_tail, r17
+  andi r17, TXBUFMASK ; Loopback when overflow
+  sts tx_buf_tail, r17 ; Update new tail index value
 usart_udre_end:
+  ; Context recovering
   pop r16
   out SREG, r16
   pop XL
