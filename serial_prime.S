@@ -67,7 +67,7 @@ main_loop:
   ldi XL, lo8(hello_world)
   ldi r24, HELLOWORLDSIZE
   rcall transmit_enqueue ; Load X and r24 before calling
-  rcall delay
+  ; rcall delay
   rjmp main_loop
 
 end_loop:
@@ -131,8 +131,6 @@ transmit_enqueue:
 transmit_enqueue_loop:
   ld r22, X+
   rcall transmit_fillbyte
-  ; tst r20
-  ; brne transmit_enqueue_end
   dec r24
   brne transmit_enqueue_loop
 transmit_enqueue_end:
@@ -148,7 +146,7 @@ transmit_fillbyte:
   andi r16, TXBUFMASK ; Loopback when overflow
   lds r17, tx_buf_tail
   cp r16, r17
-  breq transmit_fillbyte_full ; Stop and wait if buffer full
+  breq transmit_fillbyte_full ; Stop and wait if buffer full, ensure interrupt is on!
   lds r16, tx_buf_head
   mov r18, r16 ; Save a copy of head index
   add YL, r16
