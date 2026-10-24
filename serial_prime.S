@@ -58,14 +58,16 @@ _start:
 
   rcall uart_init
   sei ; Enable global interrupt
-  
+
+main_loop:
   ldi XH, hi8(hello_world)
   ldi XL, lo8(hello_world)
   ldi r24, HELLOWORLDSIZE
   rcall transmit_enqueue ; Load X and r24 before calling
+  rcall delay
 
 end_loop:
-  rjmp end_loop
+  rjmp main_loop
 ;-------------------------------------------------------------------------------
 
 hello_world_init:
@@ -100,6 +102,14 @@ uart_init:
   sts UCSR0B, r16
   ret
 
+delay:
+  ; Simple delay subroutine of 255 rounds, ~770 clk cycles or ~96 us @ 8MHz
+  ldi r16, 255
+delay_loop:
+  dec r16
+  brne delay_loop
+  ret
+
 transmit_enqueue:
   ; Load data space address of data to enqueue to X and length to r24 before calling
   tst r24
@@ -107,8 +117,8 @@ transmit_enqueue:
 transmit_enqueue_loop:
   ld r22, X+
   rcall transmit_fillbyte
-  tst r20
-  brne transmit_enqueue_end
+  ; tst r20
+  ; brne transmit_enqueue_end
   dec r24
   brne transmit_enqueue_loop
 transmit_enqueue_end:
@@ -116,7 +126,7 @@ transmit_enqueue_end:
 
 transmit_fillbyte:
   ; Load byte to fill into tx_buf to r22 before calling
-  ; Returns 0 to r20 if OK, 1 if buffer full, don't change r22 and r24
+  ; Don't change r22 and r24
   ldi YH, hi8(tx_buf)
   ldi YL, lo8(tx_buf)
   lds r16, tx_buf_head
@@ -124,7 +134,7 @@ transmit_fillbyte:
   andi r16, TXBUFMASK ; Loopback when overflow
   lds r17, tx_buf_tail
   cp r16, r17
-  breq transmit_fillbyte_full ; Skip and abandon byte if buffer full
+  breq transmit_fillbyte_full ; Stop and wait if buffer full
   lds r16, tx_buf_head
   mov r18, r16 ; Save a copy of head index
   add YL, r16
@@ -137,10 +147,9 @@ transmit_fillbyte:
   lds r16, UCSR0B
   sbr r16, 1 << 5 ; UDRIE0
   sts UCSR0B, r16 ; Set UDRIE0 to ensure interrupt enabled
-  ldi r20, 0 ; OK return
   ret
 transmit_fillbyte_full:
-  ldi r20, 1 ; Full return
+  rjmp transmit_fillbyte
   ret
 
 
