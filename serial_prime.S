@@ -16,9 +16,9 @@
 .equ UDR0, 0xC6
 .equ OSCCAL, 0x66
 
-; Set baudrate to 100000 @ 8MHz clock, UART double speed mode disabled
+; Set baudrate to 1M @ 8MHz clock, UART double speed mode enabled
 ; Calibration for internal calibrated RC oscillator varies on different chips
-.equ BAUDSET, 4
+.equ BAUDSET, 0
 .equ CALIBRATION, 0xC0 ; Default value of my chip is 0xC5, calibrated to error margin < ±1%
 ; Set tx buffer size, must be power of 2, max 256
 .equ TXBUFSIZE, 32
@@ -100,6 +100,10 @@ uart_init:
   ldi r17, lo8(BAUDSET)
   sts UBRR0H, r16
   sts UBRR0L, r17
+  ; Enable double transmission speed
+  lds r16, UCSR0A
+  ori r16, 1 << 1 ; U2X0
+  sts UCSR0A, r16
   ; Keep all other UART options default
   ; Init tx buffer head and tail index to 0
   ldi r16, 0
