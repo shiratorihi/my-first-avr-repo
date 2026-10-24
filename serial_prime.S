@@ -15,9 +15,9 @@
 .equ UBRR0H, 0xC5
 .equ UDR0, 0xC6
 
-; Set baudrate to 38400 @ 8MHz clock, UART double speed mode disabled.
+; Set baudrate to 100000 @ 8MHz clock, UART double speed mode disabled
 ; (Testing accuracy for internal calibrated RC oscillator)
-.equ BAUDSET, 12
+.equ BAUDSET, 4
 ; Set tx buffer size, must be power of 2, max 256
 .equ TXBUFSIZE, 32
 .equ TXBUFMASK, TXBUFSIZE - 1
