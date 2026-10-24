@@ -14,10 +14,12 @@
 .equ UBRR0L, 0xC4
 .equ UBRR0H, 0xC5
 .equ UDR0, 0xC6
+.equ OSCCAL, 0x66
 
 ; Set baudrate to 100000 @ 8MHz clock, UART double speed mode disabled
-; (Testing accuracy for internal calibrated RC oscillator)
+; Calibration for internal calibrated RC oscillator varies on different chips
 .equ BAUDSET, 4
+.equ CALIBRATION, 0xC0 ; Default value of my chip is 0xC5, calibrated to error margin < ±1%
 ; Set tx buffer size, must be power of 2, max 256
 .equ TXBUFSIZE, 32
 .equ TXBUFMASK, TXBUFSIZE - 1
@@ -54,6 +56,7 @@ _start:
   ldi r16, hi8(RAMEND) ; 0x08
   out SPH, r16
 
+  rcall osc_cal
   rcall hello_world_init
 
   rcall uart_init
@@ -65,9 +68,10 @@ main_loop:
   ldi r24, HELLOWORLDSIZE
   rcall transmit_enqueue ; Load X and r24 before calling
   rcall delay
+  rjmp main_loop
 
 end_loop:
-  rjmp main_loop
+  rjmp end_loop
 ;-------------------------------------------------------------------------------
 
 hello_world_init:
@@ -82,6 +86,12 @@ hello_world_init_loop:
   st X+, r16
   dec r17
   brne hello_world_init_loop
+  ret
+
+osc_cal:
+  ; Load new internal RC oscillator calibration value
+  ldi r16, CALIBRATION
+  sts OSCCAL, r16
   ret
 
 uart_init:
