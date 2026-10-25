@@ -75,9 +75,6 @@ main_loop:
   rcall transmit_enqueue
 
   rjmp main_loop
-
-end_loop:
-  rjmp end_loop
 ;-------------------------------------------------------------------------------
 
 osc_cal:
