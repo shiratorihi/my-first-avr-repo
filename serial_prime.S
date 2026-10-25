@@ -64,6 +64,8 @@ _start:
   sei ; Enable global interrupt
 
 main_loop:
+  rcall wait_for_start
+
   ldi ZH, hi8(hello_world)
   ldi ZL, lo8(hello_world)
   ldi r24, HELLOWORLDSIZE
@@ -100,8 +102,8 @@ uart_init:
   sts tx_buf_tail, r16
   ; Set TX pin to output
   sbi DDRD, 1 ; TX(PD1)
-  ; Enable transmitter
-  ldi r16, 1 << 3 ; TXEN0
+  ; Enable receiver and transmitter
+  ldi r16, (1 << 4 | 1 << 3) ; RXEN0, TXEN0
   sts UCSR0B, r16
   ret
 
@@ -111,6 +113,15 @@ delay:
 delay_loop:
   dec r16
   brne delay_loop
+  ret
+
+wait_for_start:
+  lds r16, UCSR0A
+  sbrs r16, 7 ; RXC0
+  rjmp wait_for_start
+  lds r16, UDR0
+  cpi r16, '\r'
+  brne wait_for_start
   ret
 
 transmit_enqueue:
