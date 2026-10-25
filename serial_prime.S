@@ -26,7 +26,7 @@
 
 ; Set string and its size
 .macro HELLOWORLD
-  .asciz "Hello world!\r\n"
+  .string "Hello world!\r\n"
 .endm
 .equ HELLOWORLDSIZE, 15
 
