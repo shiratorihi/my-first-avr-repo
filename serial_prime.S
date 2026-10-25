@@ -35,8 +35,6 @@ tx_buf: .space TXBUFSIZE
 tx_buf_head: .space 1
 tx_buf_tail: .space 1
 
-hello_world: .space HELLOWORLDSIZE
-
 .section .text
 .global _start
 .org 0x0000
@@ -57,36 +55,20 @@ _start:
   out SPH, r16
 
   rcall osc_cal
-  rcall hello_world_init
-
   rcall uart_init
   sei ; Enable global interrupt
 
 main_loop:
-  ldi XH, hi8(hello_world)
-  ldi XL, lo8(hello_world)
+  ldi ZH, hi8(hello_world)
+  ldi ZL, lo8(hello_world)
   ldi r24, HELLOWORLDSIZE
-  rcall transmit_enqueue ; Load X and r24 before calling
+  rcall transmit_enqueue ; Load Z and r24 before calling
   ; rcall delay
   rjmp main_loop
 
 end_loop:
   rjmp end_loop
 ;-------------------------------------------------------------------------------
-
-hello_world_init:
-  ; Load string from flash to sram
-  ldi ZH, hi8(hello_world_flash)
-  ldi ZL, lo8(hello_world_flash)
-  ldi XH, hi8(hello_world)
-  ldi XL, lo8(hello_world)
-  ldi r17, HELLOWORLDSIZE
-hello_world_init_loop:
-  lpm r16, Z+
-  st X+, r16
-  dec r17
-  brne hello_world_init_loop
-  ret
 
 osc_cal:
   ; Load new internal RC oscillator calibration value
@@ -125,11 +107,11 @@ delay_loop:
   ret
 
 transmit_enqueue:
-  ; Load data space address of data to enqueue to X and length to r24 before calling
+  ; Load text space address of data to enqueue to Z and length to r24 before calling
   tst r24
   breq transmit_enqueue_end
 transmit_enqueue_loop:
-  ld r22, X+
+  lpm r22, Z+
   rcall transmit_fillbyte
   dec r24
   brne transmit_enqueue_loop
@@ -179,7 +161,6 @@ _usart_udre_isr:
   lds r17, tx_buf_tail
   cp r16, r17
   brne keep_transmit ; Check if head index is as same as tail index, which means buffer empty
-
   ; Clear UDRIE0 if tx_buf is empty
   lds r16, UCSR0B
   cbr r16, 1 << 5 ; UDRIE0
@@ -210,5 +191,5 @@ guard_loop:
   ; Prevent program from running into data area.
   rjmp guard_loop
 
-hello_world_flash:
+hello_world:
   HELLOWORLD
