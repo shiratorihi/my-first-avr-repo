@@ -25,10 +25,15 @@
 .equ TXBUFMASK, TXBUFSIZE - 1
 
 ; Set string and its size
-.equ HELLOWORLDSIZE, 15
 .macro HELLOWORLD
   .asciz "Hello world!\r\n"
 .endm
+.equ HELLOWORLDSIZE, 15
+
+.macro TEXT1
+  .string "UART transmit test.\r\n"
+.endm
+.equ TEXT1SIZE, 22
 
 .section .bss
 tx_buf: .space TXBUFSIZE
@@ -62,8 +67,13 @@ main_loop:
   ldi ZH, hi8(hello_world)
   ldi ZL, lo8(hello_world)
   ldi r24, HELLOWORLDSIZE
-  rcall transmit_enqueue ; Load Z and r24 before calling
-  ; rcall delay
+  rcall transmit_enqueue
+
+  ldi ZH, hi8(text1)
+  ldi ZL, lo8(text1)
+  ldi r24, TEXT1SIZE
+  rcall transmit_enqueue
+
   rjmp main_loop
 
 end_loop:
@@ -193,3 +203,6 @@ guard_loop:
 
 hello_world:
   HELLOWORLD
+
+text1:
+  TEXT1
