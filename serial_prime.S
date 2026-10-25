@@ -116,6 +116,7 @@ delay_loop:
   ret
 
 wait_for_start:
+  ; Wait until enter is pressed in serial shell on PC
   lds r16, UCSR0A
   sbrs r16, 7 ; RXC0
   rjmp wait_for_start
