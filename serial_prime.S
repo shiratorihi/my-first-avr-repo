@@ -74,6 +74,7 @@ _start:
   out SPH, r16
 
   rcall osc_cal
+  rcall str_buf_len_init
   rcall uart_init
   sei ; Enable global interrupt
 
@@ -97,6 +98,12 @@ osc_cal:
   ; Load new internal RC oscillator calibration value
   ldi r16, CALIBRATION
   sts OSCCAL, r16
+  ret
+
+str_buf_len_init:
+  ; Init str_buf_len to 0
+  clr r16
+  sts str_buf_len, r16
   ret
 
 uart_init:
@@ -179,6 +186,46 @@ dd_skip_digit_5:
   dec r21
   brne double_dabble_loop
   ret
+
+add_bcd_to_string_16:
+  ; Ignores leading zeros of bcd
+  ; Load input value to r20:r19:r18 as 5-digit bcd
+  ; Clobbers are r23 and r16
+  clr r23 ; Started indicator
+  mov r16, r20
+  ; andi r16, 0x0F
+  rcall add_digit
+  mov r16, r19
+  swap r16
+  andi r16, 0x0F
+  rcall add_digit
+  mov r16, r19
+  andi r16, 0x0F
+  rcall add_digit
+  mov r16, r18
+  swap r16
+  andi r16, 0x0F
+  rcall add_digit
+  mov r16, r18
+  andi r16, 0x0F
+  rcall add_digit
+
+add_digit:
+  ; Load input value to r16 as one bcd digit, started indicator to r21
+  tst r23 ; Check if started
+  brne add_digit_emit ; Output whatever the digit is if started
+  tst r16 ; Check if zero
+  breq add_digit_skip ; Skip leading zero
+  ldi r23, 1 ; Set started indicator if not zero
+add_digit_emit:
+  subi r16, -'0' ; + '0'
+  rcall add_byte
+add_digit_skip:
+  ret
+
+add_byte:
+  ; Load input value to r16 as byte to add to str_buf
+  lds r17, str_buf_len
 
 wait_for_start:
   ; Wait until enter is pressed in serial shell on PC
