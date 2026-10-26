@@ -20,9 +20,15 @@
 ; Calibration for internal calibrated RC oscillator varies on different chips
 .equ BAUDSET, 0
 .equ CALIBRATION, 0xC0 ; Default value of my chip is 0xC5, calibrated to error margin < ±1%
-; Set tx buffer size, must be power of 2, max 256
+; Set tx ring buffer size, must be power of 2, max 256
 .equ TXBUFSIZE, 32
 .equ TXBUFMASK, TXBUFSIZE - 1
+
+.equ STARTNUM, 0
+.equ TOTALROUNDS, 100
+.equ STRBUFSIZE, 64
+
+.equ DATAWIDTH, 16
 
 ; Set string and its size
 .macro HELLOWORLD
@@ -31,14 +37,22 @@
 .equ HELLOWORLDSIZE, 15
 
 .macro TEXT1
-  .string "UART transmit test.\r\n"
+  .string "\r\nStarting benchmark...\r\n\r\n"
 .endm
-.equ TEXT1SIZE, 22
+.equ TEXT1SIZE, 28
 
 .section .bss
 tx_buf: .space TXBUFSIZE
 tx_buf_head: .space 1
 tx_buf_tail: .space 1
+
+str_buf: .space STRBUFSIZE
+str_buf_len: .space 1
+
+num: .space DATAWIDTH / 8
+cur: .space DATAWIDTH / 8
+i: .space DATAWIDTH / 8
+result: .space DATAWIDTH / 8
 
 .section .text
 .global _start
@@ -113,6 +127,57 @@ delay:
 delay_loop:
   dec r16
   brne delay_loop
+  ret
+
+double_dabble_16:
+  ; Load input value to r25:r24 as 16-bit binary
+  ; Return output value at r20:r19:r18 as 5-digit bcd
+  ; Clobbers are r21 and r16
+  clr r20
+  clr r19
+  clr r18
+  ldi r21, 16 ; Number of iterations
+double_dabble_loop:
+  ; Add 3 to each bcd digit if ≥ 5
+  mov r16, r20
+  andi r16, 0x0F
+  cpi r16, 5
+  brlo dd_skip_digit_1
+  subi r20, -3 ; + 3
+dd_skip_digit_1:
+  mov r16, r19
+  andi r16, 0xF0
+  cpi r16, 0x50
+  brlo dd_skip_digit_2
+  subi r19, -0x30 ; + 3
+dd_skip_digit_2:
+  mov r16, r19
+  andi r16, 0x0F
+  cpi r16, 5
+  brlo dd_skip_digit_3
+  subi r19, -3 ; + 3
+dd_skip_digit_3:
+  mov r16, r18
+  andi r16, 0xF0
+  cpi r16, 0x50
+  brlo dd_skip_digit_4
+  subi r18, -0x30 ; + 3
+dd_skip_digit_4:
+  mov r16, r18
+  andi r16, 0x0F
+  cpi r16, 5
+  brlo dd_skip_digit_5
+  subi r18, -3 ; + 3
+dd_skip_digit_5:
+  ; Shift binary data left into bcd by 1-bit
+  lsl r24
+  rol r25
+  rol r18
+  rol r19
+  rol r20
+  ; Count iterations
+  dec r21
+  brne double_dabble_loop
   ret
 
 wait_for_start:
