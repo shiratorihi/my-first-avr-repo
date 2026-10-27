@@ -94,10 +94,7 @@ main_loop:
   ldi r25, hi8(12345)
   ldi r24, lo8(12345)
   rcall double_dabble_16
-  ldi r16, '\r'
-  rcall add_byte
-  ldi r16, '\n'
-  rcall add_byte
+  rcall str_eol
 
   ldi XH, hi8(str_buf)
   ldi XL, lo8(str_buf)
@@ -117,6 +114,16 @@ str_buf_len_init:
   ; Init str_buf_len to 0
   clr r16
   sts str_buf_len, r16
+  ret
+
+str_eol:
+  ; Add CPLD and \0 to str_buf
+  ldi r16, '\r'
+  rcall add_byte
+  ldi r16, '\n'
+  rcall add_byte
+  ldi r16, 0
+  rcall add_byte
   ret
 
 uart_init:
