@@ -50,6 +50,7 @@ str_buf: .space STRBUFSIZE
 str_buf_len: .space 1
 
 num: .space DATAWIDTH / 8
+rounds: .space DATAWIDTH / 8
 cur: .space DATAWIDTH / 8
 i: .space DATAWIDTH / 8
 result: .space DATAWIDTH / 8
@@ -74,7 +75,7 @@ _start:
   out SPH, r16
 
   rcall osc_cal
-  rcall str_buf_len_init
+  rcall var_init
   rcall uart_init
   sei ; Enable global interrupt
 
@@ -110,10 +111,20 @@ osc_cal:
   sts OSCCAL, r16
   ret
 
-str_buf_len_init:
+var_init:
+  ; Init all variables needed
   ; Init str_buf_len to 0
   clr r16
   sts str_buf_len, r16
+  ; Init num to STARTNUM
+  ldi r16, STARTNUM
+  sts num, r16
+  ; Init rounds to TOTALROUNDS
+  ldi r16, TOTALROUNDS
+  sts rounds, r16
+  ; Init i to 2
+  ldi r16, 2
+  sts i, r16
   ret
 
 str_eol:
