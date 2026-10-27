@@ -84,11 +84,24 @@ main_loop:
   ldi ZH, hi8(hello_world)
   ldi ZL, lo8(hello_world)
   ldi r24, HELLOWORLDSIZE
-  rcall transmit_enqueue
+  rcall transmit_enqueue_flash
 
   ldi ZH, hi8(text1)
   ldi ZL, lo8(text1)
   ldi r24, TEXT1SIZE
+  rcall transmit_enqueue_flash
+
+  ldi r25, hi8(12345)
+  ldi r24, lo8(12345)
+  rcall double_dabble_16
+  ldi r16, '\r'
+  rcall add_byte
+  ldi r16, '\n'
+  rcall add_byte
+
+  ldi XH, hi8(str_buf)
+  ldi XL, lo8(str_buf)
+  lds r24, str_buf_len
   rcall transmit_enqueue
 
   rjmp main_loop
@@ -139,6 +152,7 @@ delay_loop:
 double_dabble_16:
   ; Load input value to r25:r24 as 16-bit binary
   ; Return output value at r20:r19:r18 as 5-digit bcd
+  ; Internally calls add_bcd_to_string_16
   ; Clobbers are r21 and r16
   clr r20
   clr r19
@@ -185,11 +199,13 @@ dd_skip_digit_5:
   ; Count iterations
   dec r21
   brne double_dabble_loop
+  rcall add_bcd_to_string_16
   ret
 
 add_bcd_to_string_16:
   ; Ignores leading zeros of bcd
   ; Load input value to r20:r19:r18 as 5-digit bcd
+  ; Internally calls add_digit
   ; Clobbers are r23 and r16
   clr r23 ; Started indicator
   mov r16, r20
@@ -209,9 +225,11 @@ add_bcd_to_string_16:
   mov r16, r18
   andi r16, 0x0F
   rcall add_digit
+  ret
 
 add_digit:
-  ; Load input value to r16 as one bcd digit, started indicator to r21
+  ; Load input value to r16 as one bcd digit, started indicator to r23
+  ; Internally calls add_byte
   tst r23 ; Check if started
   brne add_digit_emit ; Output whatever the digit is if started
   tst r16 ; Check if zero
@@ -225,7 +243,20 @@ add_digit_skip:
 
 add_byte:
   ; Load input value to r16 as byte to add to str_buf
+  ; Clobbers are X registers(r27:r26)
   lds r17, str_buf_len
+  cpi r17, 255
+  breq add_byte_skip ; Skip if str_buf full
+  ldi XH, hi8(str_buf)
+  ldi XL, lo8(str_buf)
+  add XL, r17
+  clr r1
+  adc XH, r1
+  st X, r16
+  inc r17
+  sts str_buf_len, r17
+add_byte_skip:
+  ret
 
 wait_for_start:
   ; Wait until enter is pressed in serial shell on PC
@@ -237,16 +268,29 @@ wait_for_start:
   brne wait_for_start
   ret
 
-transmit_enqueue:
+transmit_enqueue_flash:
   ; Load text space address of data to enqueue to Z and length to r24 before calling
+  tst r24
+  breq transmit_enqueue_flash_end
+transmit_enqueue_flash_loop:
+  lpm r22, Z+
+  rcall transmit_fillbyte
+  dec r24
+  brne transmit_enqueue_flash_loop
+transmit_enqueue_flash_end:
+  ret
+
+transmit_enqueue:
+  ; Load data space address of data to enqueue to X and length to r24 before calling
   tst r24
   breq transmit_enqueue_end
 transmit_enqueue_loop:
-  lpm r22, Z+
+  ld r22, X+
   rcall transmit_fillbyte
   dec r24
   brne transmit_enqueue_loop
 transmit_enqueue_end:
+  sts str_buf_len, r24
   ret
 
 transmit_fillbyte:
