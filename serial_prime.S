@@ -75,7 +75,7 @@ _start:
   out SPH, r16
 
   rcall osc_cal
-  rcall var_init
+  rcall var_init_16
   rcall uart_init
   sei ; Enable global interrupt
 
@@ -102,8 +102,118 @@ main_loop:
   lds r24, str_buf_len
   rcall transmit_enqueue
 
+  rcall prime_factor_16
+
   rjmp main_loop
 ;-------------------------------------------------------------------------------
+
+prime_factor_16:
+  ; Main subroutine of breaking all prime factors of a given number
+  clr r1
+prime_factor_16_loop:
+  ldi XH, hi8(num)
+  ldi XL, lo8(num)
+  ld r25, X+
+  ld r24, X+
+  ldi XH, hi8(cur)
+  ldi XL, lo8(cur)
+  st X+, r25
+  st X+, r24
+  rcall double_dabble_16
+  rcall str_equal
+  ldi XH, hi8(i + 1)
+  ldi XL, lo8(i + 1)
+  ldi r16, 2
+  st X, r16
+prime_factor_16_inner_loop:
+  ldi XH, hi8(i)
+  ldi XL, lo8(i)
+  ld r23, X+
+  ld r22, X+
+  ldi XH, hi8(cur)
+  ldi XH, hi8(cur)
+  ld r25, X+
+  ld r24, X+
+  rcall udivmod16
+  ldi YH, hi8(result)
+  ldi YL, lo8(result)
+  st Y+, r27
+  st Y+, r26
+  tst r27
+  brne skip_result_0_16
+  tst r26
+  brne skip_result_0_16
+  st -X, r24
+  st -X, r25
+  tst r25
+  brne skip_cur_0_16
+  cpi r24, 1
+  brne skip_cur_1_16
+  rjmp prime_factor_16_inner_loop_end
+skip_cur_1_16:
+  tst r24
+  brne skip_cur_0_16
+  lds i, r1
+  lds i + 1, r1
+  rjmp prime_factor_16_inner_loop_end
+skip_cur_0_16:
+  mov r25, r23
+  mov r24, r22
+  rcall double_dabble_16
+  rcall str_x
+  ldi r16, 1
+  lds i, r1
+  lds i + 1, r16
+skip_result_0_16:
+  ldi XH, hi8(i)
+  ldi XL, lo8(i)
+  ld r23, X+
+  ld r22, X+
+  tst r23
+  brne i_sh_2
+  cpi r22, 3
+  brsh i_sh_2
+  subi r22, -1
+  sbci r23, -1
+  rjmp i_2_end
+i_sh_2:
+  subi r22, -2
+  sbci r23, -1
+i_2_end:
+  st -X, r22
+  st -X, r23
+prime_factor_16_inner_loop_end:
+
+
+  rcall str_eol
+  ldi XH, hi8(str_buf)
+  ldi XL, lo8(str_buf)
+  lds r24, str_buf_len
+  rcall transmit_enqueue
+  ret
+
+udivmod16:
+  ; Simple port of __udivmodhi4, written by myself
+  ; Load r25:r24 as 16-bit dividend, r23:r22 as 16-bit divisor
+  ; Return output value at r25:r24 as quotient, r27:r26 as remainder
+  clr r26
+  clr r27
+  ldi r21, 16 ; Number of iterations
+udivmod16_loop:
+  lsl r24
+  rol r25
+  rol r26
+  rol r27
+  cp r26, r22
+  cpc r27, r23
+  brcs udivmod16_skip
+  sub r26, r22
+  sbc r27, r23
+  inc r24
+udivmod16_skip:
+  dec r21
+  brne udivmod16_loop
+  ret
 
 osc_cal:
   ; Load new internal RC oscillator calibration value
@@ -111,20 +221,24 @@ osc_cal:
   sts OSCCAL, r16
   ret
 
-var_init:
+var_init_16:
   ; Init all variables needed
   ; Init str_buf_len to 0
   clr r16
   sts str_buf_len, r16
   ; Init num to STARTNUM
-  ldi r16, STARTNUM
+  ldi r16, hi8(STARTNUM)
   sts num, r16
+  ldi r16, lo8(STARTNUM)
+  sts num + 1, r16
   ; Init rounds to TOTALROUNDS
-  ldi r16, TOTALROUNDS
+  ldi r16, hi8(TOTALROUNDS)
   sts rounds, r16
+  ldi r16, lo8(TOTALROUNDS)
+  sts rounds + 1, r16
   ; Init i to 2
-  ldi r16, 2
-  sts i, r16
+  ; ldi r16, 2
+  ; sts i, r16
   ret
 
 str_eol:
@@ -134,6 +248,26 @@ str_eol:
   ldi r16, '\n'
   rcall add_byte
   ldi r16, 0
+  rcall add_byte
+  ret
+
+str_equal:
+  ; Add " = " to str_buf
+  ldi r16, ' '
+  rcall add_byte
+  ldi r16, '='
+  rcall add_byte
+  ldi r16, ' '
+  rcall add_byte
+  ret
+
+str_x:
+  ; Add " x " to str_buf
+  ldi r16, ' '
+  rcall add_byte
+  ldi r16, 'x'
+  rcall add_byte
+  ldi r16, ' '
   rcall add_byte
   ret
 
@@ -243,6 +377,12 @@ add_bcd_to_string_16:
   mov r16, r18
   andi r16, 0x0F
   rcall add_digit
+
+  tst r23
+  brne add_bcd_to_string_16_done
+  ldi r16, '0'
+  rcall add_byte
+add_bcd_to_string_16_done:
   ret
 
 add_digit:
