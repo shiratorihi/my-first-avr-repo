@@ -31,10 +31,10 @@
 .equ DATAWIDTH, 16
 
 ; Set string and its size
-.macro HELLOWORLD
-  .string "Hello world!\r\n"
+.macro TEXT0
+  .string "\r\n-----AVR Output Starting-----\r\n"
 .endm
-.equ HELLOWORLDSIZE, 15
+.equ TEXT0SIZE, 34
 
 .macro TEXT1
   .string "\r\nStarting benchmark...\r\n\r\n"
@@ -81,9 +81,9 @@ _start:
 main_loop:
   rcall wait_for_start
 
-  ldi ZH, hi8(hello_world)
-  ldi ZL, lo8(hello_world)
-  ldi r24, HELLOWORLDSIZE
+  ldi ZH, hi8(text0)
+  ldi ZL, lo8(text0)
+  ldi r24, TEXT0SIZE
   rcall transmit_enqueue_flash
 
   ldi ZH, hi8(text1)
@@ -252,7 +252,7 @@ add_byte:
   ; Load input value to r16 as byte to add to str_buf
   ; Clobbers are X registers(r27:r26)
   lds r17, str_buf_len
-  cpi r17, 255
+  cpi r17, STRBUFSIZE - 1
   breq add_byte_skip ; Skip if str_buf full
   ldi XH, hi8(str_buf)
   ldi XL, lo8(str_buf)
@@ -373,8 +373,8 @@ guard_loop:
   ; Prevent program from running into data area.
   rjmp guard_loop
 
-hello_world:
-  HELLOWORLD
+text0:
+  TEXT0
 
 text1:
   TEXT1
