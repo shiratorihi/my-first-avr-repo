@@ -52,7 +52,7 @@ str_buf_len: .space 1
 num: .space DATAWIDTH / 8
 rounds: .space DATAWIDTH / 8
 cur: .space DATAWIDTH / 8
-i: .space DATAWIDTH / 16
+i: .space DATAWIDTH / 8
 result: .space DATAWIDTH / 8
 
 .section .text
@@ -91,16 +91,6 @@ main_loop:
   ldi ZL, lo8(text1)
   ldi r24, TEXT1SIZE
   rcall transmit_enqueue_flash
-
-  ; ldi r25, hi8(12345)
-  ; ldi r24, lo8(12345)
-  ; rcall double_dabble_16
-  ; rcall str_eol
-  ;
-  ; ldi XH, hi8(str_buf)
-  ; ldi XL, lo8(str_buf)
-  ; lds r24, str_buf_len
-  ; rcall transmit_enqueue
 
   rcall prime_factor_16
 
