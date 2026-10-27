@@ -101,6 +101,8 @@ prime_factor_16:
   ; Main subroutine of breaking all prime factors of a given number
   clr r1
 prime_factor_16_loop:
+  ; ldi r16, 0
+  ; sts str_buf_len, r16
   ldi XH, hi8(num)
   ldi XL, lo8(num)
   ld r25, X+
@@ -127,16 +129,16 @@ prime_factor_16_inner_loop:
   ld r25, X+
   ld r24, X+
   rcall udivmod16
-  ldi YH, hi8(result)
-  ldi YL, lo8(result)
-  st Y+, r27
-  st Y+, r26
+  ; ldi YH, hi8(result)
+  ; ldi YL, lo8(result)
+  ; st Y+, r27
+  ; st Y+, r26
   tst r27
   brne skip_result_0_16
   tst r26
   brne skip_result_0_16
-  st -X, r24
-  st -X, r25
+  sts cur, r25
+  sts cur + 1, r24
   tst r25
   brne skip_cur_0_16
   cpi r24, 1
