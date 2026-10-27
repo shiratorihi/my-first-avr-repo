@@ -52,7 +52,7 @@ str_buf_len: .space 1
 num: .space DATAWIDTH / 8
 rounds: .space DATAWIDTH / 8
 cur: .space DATAWIDTH / 8
-i: .space DATAWIDTH / 8
+i: .space DATAWIDTH / 16
 result: .space DATAWIDTH / 8
 
 .section .text
@@ -92,15 +92,15 @@ main_loop:
   ldi r24, TEXT1SIZE
   rcall transmit_enqueue_flash
 
-  ldi r25, hi8(12345)
-  ldi r24, lo8(12345)
-  rcall double_dabble_16
-  rcall str_eol
-
-  ldi XH, hi8(str_buf)
-  ldi XL, lo8(str_buf)
-  lds r24, str_buf_len
-  rcall transmit_enqueue
+  ; ldi r25, hi8(12345)
+  ; ldi r24, lo8(12345)
+  ; rcall double_dabble_16
+  ; rcall str_eol
+  ;
+  ; ldi XH, hi8(str_buf)
+  ; ldi XL, lo8(str_buf)
+  ; lds r24, str_buf_len
+  ; rcall transmit_enqueue
 
   rcall prime_factor_16
 
@@ -121,17 +121,19 @@ prime_factor_16_loop:
   st X+, r24
   rcall double_dabble_16
   rcall str_equal
-  ldi XH, hi8(i + 1)
-  ldi XL, lo8(i + 1)
+  ldi XH, hi8(i)
+  ldi XL, lo8(i)
+  ldi r16, 0
+  st X+, r16
   ldi r16, 2
-  st X, r16
+  st X+, r16
 prime_factor_16_inner_loop:
   ldi XH, hi8(i)
   ldi XL, lo8(i)
   ld r23, X+
   ld r22, X+
   ldi XH, hi8(cur)
-  ldi XH, hi8(cur)
+  ldi XL, lo8(cur)
   ld r25, X+
   ld r24, X+
   rcall udivmod16
@@ -153,8 +155,8 @@ prime_factor_16_inner_loop:
 skip_cur_1_16:
   tst r24
   brne skip_cur_0_16
-  lds i, r1
-  lds i + 1, r1
+  sts i, r1
+  sts i + 1, r1
   rjmp prime_factor_16_inner_loop_end
 skip_cur_0_16:
   mov r25, r23
@@ -162,8 +164,8 @@ skip_cur_0_16:
   rcall double_dabble_16
   rcall str_x
   ldi r16, 1
-  lds i, r1
-  lds i + 1, r16
+  sts i, r1
+  sts i + 1, r16
 skip_result_0_16:
   ldi XH, hi8(i)
   ldi XL, lo8(i)
@@ -182,15 +184,55 @@ i_sh_2:
 i_2_end:
   st -X, r22
   st -X, r23
-prime_factor_16_inner_loop_end:
 
+  lds r25, cur
+  lds r24, cur + 1
+  tst r23
+  brne i_i_cur
+  mul r22, r22
+  cp r24, r0
+  cpc r25, r1
+  brlo i_i_cur
+  clr r1
+  rjmp prime_factor_16_inner_loop
+i_i_cur:
+  st X+, r25
+  st X+, r24
+  clr r1
+  rjmp prime_factor_16_inner_loop_end
+prime_factor_16_inner_loop_end:
+  ldi XH, hi8(i)
+  ldi XL, lo8(i)
+  ld r25, X+
+  ld r24, X+
+  rcall double_dabble_16
 
   rcall str_eol
   ldi XH, hi8(str_buf)
   ldi XL, lo8(str_buf)
   lds r24, str_buf_len
   rcall transmit_enqueue
+
+  lds r17, num
+  lds r16, num + 1
+  subi r16, -1
+  sbci r17, -1
+  sts num, r17
+  sts num + 1, r16
+  lds r17, rounds
+  lds r16, rounds + 1
+  subi r16, 1
+  sbc r17, r1
+  sts rounds, r17
+  sts rounds + 1, r16
+  tst r17
+  brne loop_trampoline
+  tst r16
+  brne loop_trampoline
+
   ret
+loop_trampoline:
+  rjmp prime_factor_16_loop
 
 udivmod16:
   ; Simple port of __udivmodhi4, written by myself
