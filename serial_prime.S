@@ -35,7 +35,7 @@
 .equ TXBUFMASK, TXBUFSIZE - 1
 
 .equ STARTNUM, 0 ; Set the starting number of prime factor search benchmark, range 0 to 65536, loopback to 0 when overflow
-.equ TOTALROUNDS, 0 ; Set the total rounds of prime factor search benchmark, range 0 to 65536(0 equivalent to 65536)
+.equ TOTALROUNDS, 65536 ; Set the total rounds of prime factor search benchmark, range 0 to 65536 (1 equivalent to 65536)
 .equ STRBUFSIZE, 96 ; Set the string buffer size of benchmark, truncates when a line exceeds this value
 
 .equ DATAWIDTH, 16 ; Unmodifiable, this program is designed to handle 16-bit data
@@ -154,7 +154,7 @@ main_loop:
   ldi ZH, hi8(text6)
   ldi ZL, lo8(text6)
   ldi r24, TEXT6SIZE
-  rcall transmit_enqueue_flash ; Prints TEXT6(65536) if TOTALROUNDS is 0
+  rcall transmit_enqueue_flash ; Prints TEXT6 (65536) if TOTALROUNDS is 0
   rjmp skip_not_zero
 not_zero:
   rcall double_dabble_16 ; Normally formats TOTALROUNDS and print if not zero
@@ -303,7 +303,7 @@ prime_factor_16_inner_loop_end:
 
   ret
 loop_trampoline:
-  ; Too far for brne(± 64 words or ± 128 bytes)
+  ; Too far for brne (± 64 words or ± 128 bytes)
   rjmp prime_factor_16_loop
 
 udivmod16:
@@ -401,7 +401,7 @@ uart_init:
   sts tx_buf_head, r16
   sts tx_buf_tail, r16
   ; Set TX pin to output
-  sbi DDRD, 1 ; TX(PD1)
+  sbi DDRD, 1 ; TX (PD1)
   ; Enable receiver and transmitter
   ldi r16, (1 << 4 | 1 << 3) ; RXEN0, TXEN0
   sts UCSR0B, r16
@@ -515,7 +515,7 @@ add_digit_skip:
 
 add_byte:
   ; Load input value to r16 as byte to add to str_buf
-  ; Clobbers are X registers(r27:r26)
+  ; Clobbers are X registers (r27:r26)
   lds r17, str_buf_len
   cpi r17, STRBUFSIZE - 1
   breq add_byte_skip ; Skip if str_buf full
