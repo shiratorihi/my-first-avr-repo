@@ -42,39 +42,39 @@
 
 ; Set string and its size
 .macro TEXT0
-  .string "\r\n-----AVR Output Starting-----\r\n"
+  .ascii "\r\n-----AVR Output Starting-----\r\n"
 .endm
-.equ TEXT0SIZE, 34
+.equ TEXT0SIZE, 33
 
 .macro TEXT1
-  .string "\r\nPress ENTER to start benchmark...\r\n\r\n"
+  .ascii "\r\nPress ENTER to start benchmark...\r\n\r\n"
 .endm
-.equ TEXT1SIZE, 40
+.equ TEXT1SIZE, 39
 
 .macro TEXT2
-  .string "\r\nBenchmark completed!\r\n\r\n"
+  .ascii "\r\nBenchmark completed!\r\n"
 .endm
-.equ TEXT2SIZE, 27
+.equ TEXT2SIZE, 25
 
 .macro TEXT3
-  .string "\r\nPrime factor search benchmark for AVR bare-metal 16-bit version by ShiratoriYuuka314\r\n"
+  .ascii "\r\nPrime factor search benchmark for AVR bare-metal 16-bit version by ShiratoriYuuka314\r\n"
 .endm
-.equ TEXT3SIZE, 89
+.equ TEXT3SIZE, 88
 
 .macro TEXT4
-  .string "Starting number: "
+  .ascii "Starting number: "
 .endm
-.equ TEXT4SIZE, 18
+.equ TEXT4SIZE, 17
 
 .macro TEXT5
-  .string "Total rounds: "
+  .ascii "Total rounds: "
 .endm
-.equ TEXT5SIZE, 15
+.equ TEXT5SIZE, 14
 
 .macro TEXT6
-  .string "65536"
+  .ascii "65536"
 .endm
-.equ TEXT6SIZE, 6
+.equ TEXT6SIZE, 5
 
 ; SRAM allocation
 .section .bss
@@ -353,12 +353,10 @@ var_init_16:
   ret
 
 str_eol:
-  ; Add CRLF and \0 to str_buf
+  ; Add CRLF to str_buf
   ldi r16, '\r'
   rcall add_byte
   ldi r16, '\n'
-  rcall add_byte
-  ldi r16, 0
   rcall add_byte
   ret
 
