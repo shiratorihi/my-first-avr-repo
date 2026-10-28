@@ -37,6 +37,7 @@ All subprojects are made with ATmega328P microcontroller on a breadboard.
 
 - `lcd1602.S`
 - `raw_pcm.S`
+- `serial_prime_32.S`
 - ......
 
 ## Getting started
