@@ -47,9 +47,34 @@
 .equ TEXT0SIZE, 34
 
 .macro TEXT1
-  .string "\r\nStarting benchmark...\r\n\r\n"
+  .string "\r\nPress ENTER to start benchmark...\r\n\r\n"
 .endm
-.equ TEXT1SIZE, 28
+.equ TEXT1SIZE, 40
+
+.macro TEXT2
+  .string "\r\nBenchmark completed!\r\n\r\n"
+.endm
+.equ TEXT2SIZE, 27
+
+.macro TEXT3
+  .string "\r\nPrime factor search benchmark for AVR bare-metal 16-bit version by ShiratoriYuuka314\r\n"
+.endm
+.equ TEXT3SIZE, 89
+
+.macro TEXT4
+  .string "Starting number: "
+.endm
+.equ TEXT4SIZE, 18
+
+.macro TEXT5
+  .string "Total rounds: "
+.endm
+.equ TEXT5SIZE, 15
+
+.macro TEXT6
+  .string "65536"
+.endm
+.equ TEXT6SIZE, 6
 
 ; SRAM allocation
 .section .bss
@@ -98,12 +123,61 @@ main_loop:
   ldi r24, TEXT0SIZE
   rcall transmit_enqueue_flash ; Prints TEXT0
 
+  ldi ZH, hi8(text3)
+  ldi ZL, lo8(text3)
+  ldi r24, TEXT3SIZE
+  rcall transmit_enqueue_flash ; Prints TEXT3
+
+  ldi ZH, hi8(text4)
+  ldi ZL, lo8(text4)
+  ldi r24, TEXT4SIZE
+  rcall transmit_enqueue_flash ; Prints TEXT4
+  ldi r25, hi8(STARTNUM)
+  ldi r24, lo8(STARTNUM)
+  rcall double_dabble_16
+  rcall str_eol
+  ldi XH, hi8(str_buf)
+  ldi XL, lo8(str_buf)
+  lds r24, str_buf_len
+  rcall transmit_enqueue ; Prints STARTNUM + CRLF
+
+  ldi ZH, hi8(text5)
+  ldi ZL, lo8(text5)
+  ldi r24, TEXT5SIZE
+  rcall transmit_enqueue_flash ; Prints TEXT5
+  ldi r25, hi8(TOTALROUNDS)
+  ldi r24, lo8(TOTALROUNDS)
+  tst r25
+  brne not_zero
+  tst r24
+  brne not_zero
+  ldi ZH, hi8(text6)
+  ldi ZL, lo8(text6)
+  ldi r24, TEXT6SIZE
+  rcall transmit_enqueue_flash ; Prints TEXT6(65536) if TOTALROUNDS is 0
+  rjmp skip_not_zero
+not_zero:
+  rcall double_dabble_16 ; Normally formats TOTALROUNDS and print if not zero
+skip_not_zero:
+  rcall str_eol
+  ldi XH, hi8(str_buf)
+  ldi XL, lo8(str_buf)
+  lds r24, str_buf_len
+  rcall transmit_enqueue ; Prints TOTALROUNDS + CRLF
+
   ldi ZH, hi8(text1)
   ldi ZL, lo8(text1)
   ldi r24, TEXT1SIZE
   rcall transmit_enqueue_flash ; Prints TEXT1
 
+  rcall wait_for_start ; Wait for another ENTER press
+
   rcall prime_factor_16 ; Starts main subroutine
+
+  ldi ZH, hi8(text2)
+  ldi ZL, lo8(text2)
+  ldi r24, TEXT2SIZE
+  rcall transmit_enqueue_flash ; Prints TEXT2
 
   rjmp main_loop
 ;-------------------------------------------------------------------------------
@@ -282,7 +356,7 @@ var_init_16:
   ret
 
 str_eol:
-  ; Add CPLD and \0 to str_buf
+  ; Add CRLF and \0 to str_buf
   ldi r16, '\r'
   rcall add_byte
   ldi r16, '\n'
@@ -564,8 +638,24 @@ guard_loop:
   ; Prevent program from running into data area.
   rjmp guard_loop
 
+; Flash string data area.
 text0:
   TEXT0
 
 text1:
   TEXT1
+
+text2:
+  TEXT2
+
+text3:
+  TEXT3
+
+text4:
+  TEXT4
+
+text5:
+  TEXT5
+
+text6:
+  TEXT6
