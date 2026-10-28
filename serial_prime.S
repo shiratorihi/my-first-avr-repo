@@ -36,7 +36,7 @@
 
 .equ STARTNUM, 0 ; Set the starting number of prime factor search benchmark, range 0 to 65536, loopback to 0 when overflow
 .equ TOTALROUNDS, 65536 ; Set the total rounds of prime factor search benchmark, range 0 to 65536 (1 equivalent to 65536)
-.equ STRBUFSIZE, 96 ; Set the string buffer size of benchmark, truncates when a line exceeds this value
+.equ STRBUFSIZE, 68 ; Set the string buffer size of benchmark, truncates when a line exceeds this value
 
 .equ DATAWIDTH, 16 ; Unmodifiable, this program is designed to handle 16-bit data
 
