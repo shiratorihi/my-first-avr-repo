@@ -1,5 +1,15 @@
 ; vim: set filetype=asm:
 
+; serial_prime.S by ShiratoriYuuka314
+; For use on ATmega328P microcontroller
+; Using hardware USART interface as UART serial
+; PD1:0 for TX and RX pin
+; Running on calibrated internal RC oscillator @ 8MHz
+; Internal RC oscillator specifically recalibrated in this program
+; OK to use other clock sources, with appropriate baudrate recalculation
+; Prime factor check ported from a C program of mine, modified to fit AVR asm
+; This program is completely bare-metal and doesn't need to link standard start file
+
 ; Set RAMEND addr
 .equ RAMEND, 0x08FF
 ; Set SFR I/O addr
@@ -24,11 +34,11 @@
 .equ TXBUFSIZE, 32
 .equ TXBUFMASK, TXBUFSIZE - 1
 
-.equ STARTNUM, 0
-.equ TOTALROUNDS, 0
-.equ STRBUFSIZE, 64
+.equ STARTNUM, 0 ; Set the starting number of prime factor search benchmark, range 0 to 65536, loopback to 0 when overflow
+.equ TOTALROUNDS, 0 ; Set the total rounds of prime factor search benchmark, range 0 to 65536(0 equivalent to 65536)
+.equ STRBUFSIZE, 64 ; Set the string buffer size of benchmark, truncates when a line exceeds this value
 
-.equ DATAWIDTH, 16
+.equ DATAWIDTH, 16 ; Unmodifiable, this program is designed to handle 16-bit data
 
 ; Set string and its size
 .macro TEXT0
@@ -41,6 +51,7 @@
 .endm
 .equ TEXT1SIZE, 28
 
+; SRAM allocation
 .section .bss
 tx_buf: .space TXBUFSIZE
 tx_buf_head: .space 1
@@ -85,24 +96,23 @@ main_loop:
   ldi ZH, hi8(text0)
   ldi ZL, lo8(text0)
   ldi r24, TEXT0SIZE
-  rcall transmit_enqueue_flash
+  rcall transmit_enqueue_flash ; Prints TEXT0
 
   ldi ZH, hi8(text1)
   ldi ZL, lo8(text1)
   ldi r24, TEXT1SIZE
-  rcall transmit_enqueue_flash
+  rcall transmit_enqueue_flash ; Prints TEXT1
 
-  rcall prime_factor_16
+  rcall prime_factor_16 ; Starts main subroutine
 
   rjmp main_loop
 ;-------------------------------------------------------------------------------
 
 prime_factor_16:
   ; Main subroutine of breaking all prime factors of a given number
-  clr r1
+  ; Ported from another C program of mine, rearranged for 8-bit AVR assembly
+  clr r1 ; Zero reg that comes in handy
 prime_factor_16_loop:
-  ; ldi r16, 0
-  ; sts str_buf_len, r16
   ldi XH, hi8(num)
   ldi XL, lo8(num)
   ld r25, X+
@@ -129,10 +139,6 @@ prime_factor_16_inner_loop:
   ld r25, X+
   ld r24, X+
   rcall udivmod16
-  ; ldi YH, hi8(result)
-  ; ldi YL, lo8(result)
-  ; st Y+, r27
-  ; st Y+, r26
   tst r27
   brne skip_result_0_16
   tst r26
@@ -176,7 +182,6 @@ i_sh_2:
 i_2_end:
   st -X, r22
   st -X, r23
-
   lds r25, cur
   lds r24, cur + 1
   tst r23
@@ -224,6 +229,7 @@ prime_factor_16_inner_loop_end:
 
   ret
 loop_trampoline:
+  ; Too far for brne(± 64 words or ± 128 bytes)
   rjmp prime_factor_16_loop
 
 udivmod16:
