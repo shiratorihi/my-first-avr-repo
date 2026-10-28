@@ -27,10 +27,11 @@ All subprojects are made with ATmega328P microcontroller on a breadboard.
 
 - `blink.S`
 - `four_digit.S`
+- `serial_prime.S`
 
 ### In progress
 
-- `serial_prime.S`
+- _Currently nothing..._
 
 ### Planned
 
