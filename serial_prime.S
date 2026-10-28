@@ -31,7 +31,7 @@
 .equ BAUDSET, 0
 .equ CALIBRATION, 0xC0 ; Default value of my chip is 0xC5, calibrated to error margin < ±1%
 ; Set tx ring buffer size, must be power of 2, max 256
-.equ TXBUFSIZE, 32
+.equ TXBUFSIZE, 2
 .equ TXBUFMASK, TXBUFSIZE - 1
 
 .equ STARTNUM, 0 ; Set the starting number of prime factor search benchmark, range 0 to 65536, loopback to 0 when overflow
