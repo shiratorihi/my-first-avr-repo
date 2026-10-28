@@ -111,11 +111,11 @@ _start:
   out SPH, r16
 
   rcall osc_cal
-  rcall var_init_16
   rcall uart_init
   sei ; Enable global interrupt
 
 main_loop:
+  rcall var_init_16
   rcall wait_for_start
 
   ldi ZH, hi8(text0)
@@ -350,9 +350,6 @@ var_init_16:
   sts rounds, r16
   ldi r16, lo8(TOTALROUNDS)
   sts rounds + 1, r16
-  ; Init i to 2
-  ; ldi r16, 2
-  ; sts i, r16
   ret
 
 str_eol:
