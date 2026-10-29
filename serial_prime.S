@@ -7,6 +7,7 @@
 ; Running on calibrated internal RC oscillator @ 8MHz
 ; Internal RC oscillator specifically recalibrated in this program
 ; OK to use other clock sources, with appropriate baudrate recalculation
+; Successfully tested on external crystal @ 16MHz, with 2M baudrate
 ; Prime factor check ported from a C program of mine, modified to fit AVR asm
 ; This program is completely bare-metal and doesn't need to link standard start file
 
