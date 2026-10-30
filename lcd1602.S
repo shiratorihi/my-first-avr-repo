@@ -54,6 +54,9 @@ _start:
   rcall delay_long ; Enough delay to ensure lcd module ready
   rcall lcd_init
 
+  ldi r24, 'A'
+  rcall lcd_write_data
+
 main_loop:
 
   rjmp main_loop
@@ -117,7 +120,7 @@ lcd_write_cmd:
 lcd_write_data:
   ; Load data to write to lcd module to r24 before calling
   rcall lcd_wait_busy
-  cbi PORTD, RS ; RS=1, RW=0 for data write
+  sbi PORTD, RS ; RS=1, RW=0 for data write
   cbi PORTD, RW
   out PORTB, r24 ; Output data to wait until stable
   sbi PORTD, E
