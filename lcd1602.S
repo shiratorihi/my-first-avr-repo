@@ -1,8 +1,10 @@
 ; vim: set filetype=asm:
 
-; template.S by ShiratoriYuuka314
+; lcd1602.S by ShiratoriYuuka314
 ; For use on ATmega328P microcontroller
-
+; PB7:0 as 8-pin parallel IO pins
+; PD7:5 as E, RW, RS control pins
+; Running on calibrated internal RC oscillator @ 8MHz
 ; This program is completely bare-metal and doesn't need to link standard start file
 
 ; Set RAMEND addr
