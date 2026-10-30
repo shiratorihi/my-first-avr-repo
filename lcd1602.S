@@ -2,6 +2,8 @@
 
 ; lcd1602.S by ShiratoriYuuka314
 ; For use on ATmega328P microcontroller
+; Using hardware USART interface as UART serial
+; PD0 for RX pin
 ; PB7:0 as 8-pin parallel IO pins D7:0
 ; PD7:5 as RS, RW, E control pins
 ; Running on calibrated internal RC oscillator @ 8MHz
