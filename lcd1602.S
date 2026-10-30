@@ -36,7 +36,7 @@
 .equ BAUDSET, 0
 .equ CALIBRATION, 0xC0 ; Default value of my chip is 0xC5, calibrated to error margin < ±1%
 ; Set rx ring buffer size, must be power of 2, max 256
-.equ RXBUFSIZE, 2
+.equ RXBUFSIZE, 16
 .equ RXBUFMASK, RXBUFSIZE - 1
 
 ; Set pin definition
