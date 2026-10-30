@@ -26,7 +26,7 @@
 
 ; Set string
 .macro TEXT0
-  .ascii "Hello world!"
+  .string "Hello world!"
 .endm
 .equ TEXT0SIZE, 12
 
@@ -54,8 +54,9 @@ _start:
   rcall delay_long ; Enough delay to ensure lcd module ready
   rcall lcd_init
 
-  ldi r24, 'A'
-  rcall lcd_write_data
+  ldi ZH, hi8(text0)
+  ldi ZL, lo8(text0)
+  rcall display_flash
 
 main_loop:
 
@@ -129,6 +130,17 @@ lcd_write_data:
   nop
   nop ; Wait at least 450 ns, 4 nops are 500 ns @ 8MHz
   cbi PORTD, E ; Create a falling edge on E for lcd module to latch data
+  ret
+
+display_flash:
+  ; Load text space address of text to display to Z before calling
+display_flash_loop:
+  lpm r24, Z+
+  tst r24
+  breq display_flash_end
+  rcall lcd_write_data
+  rjmp display_flash_loop
+display_flash_end:
   ret
 
 delay_long:
