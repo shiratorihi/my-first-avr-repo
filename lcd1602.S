@@ -103,7 +103,21 @@ lcd_wait_busy_loop:
 lcd_write_cmd:
   ; Load command to write to lcd module to r24 before calling
   rcall lcd_wait_busy
-  cbi PORTD, RS ; RS=0, RW=1 for command write
+  cbi PORTD, RS ; RS=0, RW=0 for command write
+  cbi PORTD, RW
+  out PORTB, r24 ; Output data to wait until stable
+  sbi PORTD, E
+  nop
+  nop
+  nop
+  nop ; Wait at least 450 ns, 4 nops are 500 ns @ 8MHz
+  cbi PORTD, E ; Create a falling edge on E for lcd module to latch data
+  ret
+
+lcd_write_data:
+  ; Load data to write to lcd module to r24 before calling
+  rcall lcd_wait_busy
+  cbi PORTD, RS ; RS=1, RW=0 for data write
   cbi PORTD, RW
   out PORTB, r24 ; Output data to wait until stable
   sbi PORTD, E
