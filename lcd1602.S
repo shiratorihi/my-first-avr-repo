@@ -28,7 +28,6 @@
 .macro TEXT0
   .string "Hello world!"
 .endm
-.equ TEXT0SIZE, 12
 
 ; SRAM allocation
 .section .bss
