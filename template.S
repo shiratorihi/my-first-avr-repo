@@ -1,8 +1,18 @@
+; vim: set filetype=asm:
+
+; template.S by ShiratoriYuuka314
+; For use on ATmega328P microcontroller
+
+; This program is completely bare-metal and doesn't need to link standard start file
+
 ; Set RAMEND addr
 .equ RAMEND, 0x08FF
 ; Set SFR I/O addr
 .equ SPL, 0x3D
 .equ SPH, 0x3E
+
+; SRAM allocation
+.section .bss
 
 .section .text
 .global _start
@@ -18,5 +28,9 @@ _start:
   out SPL, r16
   ldi r16, hi8(RAMEND) ; 0x08
   out SPH, r16
+
+main_loop:
+  
+  rjmp main_loop
 ;-------------------------------------------------------------------------------
 
