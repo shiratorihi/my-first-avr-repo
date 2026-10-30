@@ -31,11 +31,10 @@ All subprojects are made with ATmega328P microcontroller on a breadboard.
 
 ### In progress
 
-- _Currently nothing..._
+- `lcd1602.S`
 
 ### Planned
 
-- `lcd1602.S`
 - `raw_pcm.S`
 - `serial_prime_32.S`
 - ......
