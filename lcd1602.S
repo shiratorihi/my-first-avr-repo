@@ -55,6 +55,8 @@ rx_buf: .space RXBUFSIZE
 rx_buf_head: .space 1
 rx_buf_tail: .space 1
 
+input_state: .space 1 ; State machine to handle escape and other data
+
 .section .text
 .global _start
 .org 0x0000
@@ -78,6 +80,7 @@ _start:
   out DDRD, r16
 
   rcall osc_cal
+  rcall var_init
   rcall uart_init
 
   rcall delay_long ; Enough delay to ensure lcd module ready
@@ -92,6 +95,13 @@ main_loop:
   rcall lcd_print_rx
   rjmp main_loop
 ;-------------------------------------------------------------------------------
+
+var_init:
+  ; Init all variables to their initial value if needed
+  ldi r16, 0
+  sts input_state, r16 ; Initial state is normal state
+
+  ret
 
 lcd_init:
   ; Inits lcd module after startup delay
@@ -163,7 +173,7 @@ lcd_write_data:
   ret
 
 lcd_print_rx:
-  ; Print one byte of text from rx ring buffer to screen
+  ; Handle one byte of text from rx ring buffer to screen or process
   lds r16, rx_buf_head
   lds r17, rx_buf_tail
   cp r16, r17
@@ -174,7 +184,7 @@ lcd_print_rx:
   add XL, r17
   adc XH, r16
   ld r24, X
-  rcall lcd_write_data
+  rcall lcd_putchar
   inc r17
   andi r17, RXBUFMASK ; Loopback when overflow
   sts rx_buf_tail, r17 ; Update new tail index value
@@ -193,7 +203,7 @@ display_flash_loop:
   lpm r24, Z+
   tst r24
   breq display_flash_end
-  rcall lcd_write_data
+  rcall lcd_putchar
   rjmp display_flash_loop
 display_flash_end:
   ret
@@ -266,6 +276,72 @@ receive_fillbyte_full:
   pop r18
   pop r22
   reti
+
+lcd_putchar:
+  ; Load char to r24 before calling
+  ; Maintains a simple state machine to filter special data
+  lds r18, input_state
+  tst r18
+  breq lcd_putchar_0 ; Normal state
+  cpi r18, 2
+  brlo lcd_putchar_1 ; Got an escape
+  brsh lcd_putchar_2 ; In sequence
+lcd_putchar_0:
+  cpi r24, 0x1B ; Escape
+  brne lcd_putchar_print ; Normally print
+  ldi r18, 1
+  sts input_state, r18 ; Enter got-an-escape state
+  ret
+lcd_putchar_1:
+  cpi r24, '['
+  breq got_sequence
+  cpi r24, 'O'
+  breq got_sequence
+  ldi r18, 0
+  sts input_state, r18 ; 2-byte escape, go back to normal state
+  ret
+got_sequence:
+  ldi r18, 2
+  sts input_state, r18 ; Enter in-sequence state
+  ret
+lcd_putchar_2:
+  cpi r24, 0x40
+  brsh sh_than_0x40
+  ret
+sh_than_0x40:
+  cpi r24, 0x7F
+  brlo end_sequence
+  ret
+end_sequence:
+  ldi r18, 0
+  sts input_state, r18 ; Go back to normal state
+  ret
+lcd_putchar_print:
+  cpi r24, '\r'
+  breq got_cr
+  cpi r24, '\n'
+  breq got_lf
+  cpi r24, 0x7F
+  breq got_backspace
+  cpi r24, 0x08
+  breq got_backspace
+  rcall lcd_write_data
+  ret
+got_cr:
+  rcall lcd_crlf
+  ret
+got_lf:
+  rcall lcd_crlf
+  ret
+got_backspace:
+  rcall lcd_backspace
+  ret
+
+lcd_crlf:
+  ret
+
+lcd_backspace:
+  ret
 
 delay_long:
   ; Simple delay subroutine of ~195,844 cycles or 24.48 ms @ 8MHz
