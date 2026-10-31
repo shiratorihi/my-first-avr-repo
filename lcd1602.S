@@ -56,6 +56,7 @@ rx_buf_head: .space 1
 rx_buf_tail: .space 1
 
 input_state: .space 1 ; State machine to handle escape and other data
+cursor_state: .space 1 ; State machine to handle cursor setting
 
 .section .text
 .global _start
@@ -100,6 +101,7 @@ var_init:
   ; Init all variables to their initial value if needed
   ldi r16, 0
   sts input_state, r16 ; Initial state is normal state
+  sts cursor_state, r16 ; Initial state is cursor on, blink on
 
   ret
 
@@ -345,6 +347,8 @@ lcd_putchar_print:
   breq got_backspace
   cpi r24, 0x08
   breq got_backspace
+  cpi r24, 0x09
+  breq got_tab
   rcall lcd_write_data
   ret
 got_cr:
@@ -356,6 +360,9 @@ got_lf:
 got_backspace:
   rcall lcd_backspace
   ret
+got_tab:
+  rcall lcd_tab
+  ret
 
 lcd_up_key:
   ret
@@ -364,15 +371,55 @@ lcd_down_key:
   ret
 
 lcd_left_key:
+  ldi r24, 0x10 ; Move cursor left
+  rcall lcd_write_cmd
   ret
 
 lcd_right_key:
+  ldi r24, 0x14 ; Move cursor right
+  rcall lcd_write_cmd
   ret
 
 lcd_crlf:
   ret
 
 lcd_backspace:
+  ldi r24, 0x10 ; Move cursor left
+  rcall lcd_write_cmd
+  ldi r24, ' ' ; Use blank to override
+  rcall lcd_write_data
+  ldi r24, 0x10 ; Move cursor left
+  rcall lcd_write_cmd
+  ret
+
+lcd_tab:
+  rcall lcd_change_cursor
+  ret
+
+lcd_change_cursor:
+  lds r18, cursor_state
+  tst r18
+  breq lcd_cursor_0 ; Cursor on, blink on state
+  cpi r18, 2
+  brlo lcd_cursor_1 ; Cursor on, blink off state
+  brsh lcd_cursor_2 ; Cursor off state
+lcd_cursor_0:
+  ldi r24, 0x0E
+  rcall lcd_write_cmd
+  ldi r18, 1
+  sts cursor_state, r18
+  ret
+lcd_cursor_1:
+  ldi r24, 0x0C
+  rcall lcd_write_cmd
+  ldi r18, 2
+  sts cursor_state, r18
+  ret
+lcd_cursor_2:
+  ldi r24, 0x0F
+  rcall lcd_write_cmd
+  ldi r18, 0
+  sts cursor_state, r18
   ret
 
 delay_long:
