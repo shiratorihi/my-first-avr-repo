@@ -57,6 +57,9 @@ rx_buf_tail: .space 1
 
 input_state: .space 1 ; State machine to handle escape and other data
 cursor_state: .space 1 ; State machine to handle cursor setting
+cursor_row: .space 1 ; Indicates cursor vertical position on screen, range 0 - 1
+cursor_col: .space 1 ; Indicates cursor horizontal position on screen, range 0 - 15
+screen_shift: .space 1 ; Indicates screen shift, range 0 - 24
 
 .section .text
 .global _start
@@ -102,6 +105,9 @@ var_init:
   ldi r16, 0
   sts input_state, r16 ; Initial state is normal state
   sts cursor_state, r16 ; Initial state is cursor on, blink on
+  sts cursor_row, r16
+  sts cursor_col, r16
+  sts screen_shift, r16
 
   ret
 
@@ -349,7 +355,7 @@ lcd_putchar_print:
   breq got_backspace
   cpi r24, 0x09
   breq got_tab
-  rcall lcd_write_data
+  rcall attempt_to_write
   ret
 got_cr:
   rcall lcd_crlf
@@ -362,6 +368,76 @@ got_backspace:
   ret
 got_tab:
   rcall lcd_tab
+  ret
+
+attempt_to_write:
+  lds r25, cursor_col
+  lds r26, screen_shift
+  mov r27, r26
+  add r27, r25
+  cpi r27, 40
+  brlo ok_to_write
+  ret
+ok_to_write:
+  cpi r25, 15
+  breq write_shift
+write_line_full:
+  inc r25
+  sts cursor_col, r25
+  push r24
+  ldi r24, 0x06 ; Shift off
+  rcall lcd_write_cmd
+  pop r24
+  rcall lcd_write_data
+  ret
+write_shift:
+  cpi r26, 24
+  breq write_line_full
+  inc r26
+  sts screen_shift, r26
+  push r24
+  ldi r24, 0x07 ; Shift on
+  rcall lcd_write_cmd
+  pop r24
+  rcall lcd_write_data
+  ret
+
+attempt_to_del:
+  lds r25, cursor_col
+  lds r26, screen_shift
+  mov r27, r26
+  add r27, r25
+  brne ok_to_del
+  ret
+ok_to_del:
+  tst r25
+  breq del_shift
+  dec r25
+  sts cursor_col, r25
+  ldi r24, 0x06 ; Shift off
+  rcall lcd_write_cmd
+  ldi r24, 0x10 ; Move cursor left
+  rcall lcd_write_cmd
+  ldi r24, ' ' ; Use blank to override
+  rcall lcd_write_data
+  ldi r24, 0x10 ; Move cursor left
+  rcall lcd_write_cmd
+  ret
+del_shift:
+  dec r26
+  sts screen_shift, r26
+  ldi r24, 0x1C
+  rcall lcd_write_cmd
+  ldi r24, 0x06 ; Shift off
+  rcall lcd_write_cmd
+  ldi r24, 0x10 ; Move cursor left
+  rcall lcd_write_cmd
+  ldi r24, ' ' ; Use blank to override
+  rcall lcd_write_data
+  ; ldi r24, 0x07 ; Shift on
+  ; rcall lcd_write_cmd
+  ldi r24, 0x10 ; Move cursor left
+  rcall lcd_write_cmd
   ret
 
 lcd_up_key:
@@ -384,12 +460,7 @@ lcd_crlf:
   ret
 
 lcd_backspace:
-  ldi r24, 0x10 ; Move cursor left
-  rcall lcd_write_cmd
-  ldi r24, ' ' ; Use blank to override
-  rcall lcd_write_data
-  ldi r24, 0x10 ; Move cursor left
-  rcall lcd_write_cmd
+  rcall attempt_to_del
   ret
 
 lcd_tab:
