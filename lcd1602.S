@@ -315,6 +315,26 @@ sh_than_0x40:
 end_sequence:
   ldi r18, 0
   sts input_state, r18 ; Go back to normal state
+  cpi r24, 'A'
+  breq got_up
+  cpi r24, 'B'
+  breq got_down
+  cpi r24, 'C'
+  breq got_right
+  cpi r24, 'D'
+  breq got_left
+  ret
+got_up:
+  rcall lcd_up_key
+  ret
+got_down:
+  rcall lcd_down_key
+  ret
+got_left:
+  rcall lcd_left_key
+  ret
+got_right:
+  rcall lcd_right_key
   ret
 lcd_putchar_print:
   cpi r24, '\r'
@@ -335,6 +355,18 @@ got_lf:
   ret
 got_backspace:
   rcall lcd_backspace
+  ret
+
+lcd_up_key:
+  ret
+
+lcd_down_key:
+  ret
+
+lcd_left_key:
+  ret
+
+lcd_right_key:
   ret
 
 lcd_crlf:
