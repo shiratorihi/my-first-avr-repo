@@ -443,6 +443,61 @@ del_shift:
   rcall lcd_write_cmd
   ret
 
+attempt_to_left:
+  lds r25, cursor_col
+  lds r26, screen_shift
+  mov r27, r26
+  add r27, r25
+  brne ok_to_left
+  ret
+ok_to_left:
+  tst r26
+  brne left_shift
+left_dec:
+  dec r25
+  sts cursor_col, r25
+  ldi r24, 0x10 ; Move cursor left
+  rcall lcd_write_cmd
+  ret
+left_shift:
+  cpi r25, 9
+  brsh left_dec
+  dec r26
+  sts screen_shift, r26
+  ldi r24, 0x1C ; Shift screen left
+  rcall lcd_write_cmd
+  ldi r24, 0x10 ; Move cursor left
+  rcall lcd_write_cmd
+  ret
+
+attempt_to_right:
+  lds r25, cursor_col
+  lds r26, screen_shift
+  mov r27, r26
+  add r27, r25
+  cpi r27, 40
+  brlo ok_to_right
+  ret
+ok_to_right:
+  cpi r25, 15
+  breq right_shift
+right_line_full:
+  inc r25
+  sts cursor_col, r25
+  ldi r24, 0x14 ; Move cursor right
+  rcall lcd_write_cmd
+  ret
+right_shift:
+  cpi r26, 24
+  breq right_line_full
+  inc r26
+  sts screen_shift, r26
+  ldi r24, 0x18 ; Shift screen right
+  rcall lcd_write_cmd
+  ldi r24, 0x14 ; Move cursor right
+  rcall lcd_write_cmd
+  ret
+
 lcd_up_key:
   ret
 
@@ -450,13 +505,11 @@ lcd_down_key:
   ret
 
 lcd_left_key:
-  ldi r24, 0x10 ; Move cursor left
-  rcall lcd_write_cmd
+  rcall attempt_to_left
   ret
 
 lcd_right_key:
-  ldi r24, 0x14 ; Move cursor right
-  rcall lcd_write_cmd
+  rcall attempt_to_right
   ret
 
 lcd_crlf:
