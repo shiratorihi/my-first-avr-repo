@@ -410,8 +410,9 @@ attempt_to_del:
   brne ok_to_del
   ret
 ok_to_del:
-  tst r25
-  breq del_shift
+  tst r26
+  brne del_shift
+del_dec:
   dec r25
   sts cursor_col, r25
   ldi r24, 0x06 ; Shift off
@@ -424,6 +425,8 @@ ok_to_del:
   rcall lcd_write_cmd
   ret
 del_shift:
+  cpi r25, 16
+  breq del_dec
   dec r26
   sts screen_shift, r26
   ldi r24, 0x1C
