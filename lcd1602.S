@@ -381,7 +381,7 @@ attempt_to_write:
 ok_to_write:
   cpi r25, 15
   breq write_shift
-write_line_full:
+write_line_almost_full:
   inc r25
   sts cursor_col, r25
   push r24
@@ -392,7 +392,7 @@ write_line_full:
   ret
 write_shift:
   cpi r26, 24
-  breq write_line_full
+  breq write_line_almost_full
   inc r26
   sts screen_shift, r26
   push r24
@@ -481,7 +481,7 @@ attempt_to_right:
 ok_to_right:
   cpi r25, 15
   breq right_shift
-right_line_full:
+right_line_almost_full:
   inc r25
   sts cursor_col, r25
   ldi r24, 0x14 ; Move cursor right
@@ -489,13 +489,31 @@ right_line_full:
   ret
 right_shift:
   cpi r26, 24
-  breq right_line_full
+  breq right_line_almost_full
   inc r26
   sts screen_shift, r26
   ldi r24, 0x18 ; Shift screen right
   rcall lcd_write_cmd
   ldi r24, 0x14 ; Move cursor right
   rcall lcd_write_cmd
+  ret
+
+attempt_to_crlf:
+  ldi r24, 0x02 ; Return home
+  rcall lcd_write_cmd
+  clr r24
+  sts cursor_col, r24
+  sts screen_shift, r24
+  lds r16, cursor_row
+  tst r16
+  breq goto_line1
+  sts cursor_row, r24
+  ret
+goto_line1:
+  ldi r24, 0xC0 ; Set cursor to 40H
+  rcall lcd_write_cmd
+  ldi r16, 1
+  sts cursor_row, r16
   ret
 
 lcd_up_key:
@@ -513,6 +531,7 @@ lcd_right_key:
   ret
 
 lcd_crlf:
+  rcall attempt_to_crlf
   ret
 
 lcd_backspace:
