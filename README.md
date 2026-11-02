@@ -32,7 +32,7 @@ All subprojects are made with ATmega328P microcontroller on a breadboard.
 
 ### In progress
 
-- _Currently nothing..._
+- `tft_st7735.S`
 
 ### Planned
 
