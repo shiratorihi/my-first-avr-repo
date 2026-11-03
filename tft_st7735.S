@@ -227,10 +227,16 @@ tft_fill_screen:
 fill_column_loop:
   ldi r18, 128
 fill_row_loop:
-  mov r24, r23
-  rcall spiout_blocking
-  mov r24, r22
-  rcall spiout_blocking
+  out SPDR, r23
+row_blocking_wait:
+  in r16, SPSR
+  sbrs r16, 7 ; SPIF
+  rjmp row_blocking_wait
+  out SPDR, r22
+column_blocking_wait:
+  in r16, SPSR
+  sbrs r16, 7 ; SPIF
+  rjmp column_blocking_wait
   dec r18
   brne fill_row_loop
   dec r17
