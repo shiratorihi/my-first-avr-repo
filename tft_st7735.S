@@ -22,7 +22,7 @@
 .equ CALIBRATION, 0xC0 ; Default value of my chip is 0xC5, calibrated to error margin < ±1%
 
 ; Set SPI output ring buffer size, must be power of 2, max 256
-.equ SPIOUTBUFSIZE, 16
+.equ SPIOUTBUFSIZE, 256
 .equ SPIOUTBUFMASK, SPIOUTBUFSIZE - 1
 
 ; SRAM allocation
