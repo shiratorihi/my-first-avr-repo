@@ -224,17 +224,17 @@ tft_fill_screen:
   rcall spiout_blocking
   sbi PORTD, RS
   ldi r17, 128
-fill_row_loop:
-  ldi r18, 128
 fill_column_loop:
+  ldi r18, 128
+fill_row_loop:
   mov r24, r23
   rcall spiout_blocking
   mov r24, r22
   rcall spiout_blocking
   dec r18
-  brne fill_column_loop
-  dec r17
   brne fill_row_loop
+  dec r17
+  brne fill_column_loop
   sbi PORTD, CS
   ret
 
