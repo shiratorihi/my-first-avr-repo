@@ -59,11 +59,25 @@ _start:
 main_loop:
 
   ldi r23, 0xFF
-  ldi r22, 0xFF
+  ldi r22, 0xFF ; White
+  rcall tft_fill_screen
+
+
+  ldi r23, 0x00
+  ldi r22, 0x00 ; Black
+  rcall tft_fill_screen
+
+
+  ldi r23, 0xF8
+  ldi r22, 0x00 ; Red
+  rcall tft_fill_screen
+
+  ldi r23, 0x0F
+  ldi r22, 0xE0 ; Green
   rcall tft_fill_screen
 
   ldi r23, 0x00
-  ldi r22, 0x00
+  ldi r22, 0x1F ; Blue
   rcall tft_fill_screen
 
   rjmp main_loop
@@ -205,16 +219,18 @@ tft_set_fullscreen:
 tft_fill_screen:
   ; Load RGB565 value to r23:r22 before calling
   cbi PORTD, CS
+  cbi PORTD, RS
   ldi r24, 0x2C ; RAMWR
-  rcall tft_send_command
+  rcall spiout_blocking
+  sbi PORTD, RS
   ldi r17, 128
 fill_row_loop:
   ldi r18, 128
 fill_column_loop:
   mov r24, r23
-  rcall tft_send_data
+  rcall spiout_blocking
   mov r24, r22
-  rcall tft_send_data
+  rcall spiout_blocking
   dec r18
   brne fill_column_loop
   dec r17
