@@ -10,6 +10,9 @@
 ; Set SFR I/O addr
 .equ SPL, 0x3D
 .equ SPH, 0x3E
+.equ SPCR, 0x2C ; 7:0 -> SPIE, SPE, DORD, MSTR, CPOL, CPHA, SPR1, SPR0
+.equ SPSR, 0x2D ; 7:6, 0 -> SPIF, WCOL, SPI2X
+.equ SPDR, 0x2E
 ; Set SFR Data addr
 .equ OSCCAL, 0x66
 
@@ -23,7 +26,11 @@
 .global _start
 .org 0x0000
 
-  jmp _start ; RESET
+  rjmp _start ; RESET
+
+.org 0x0044
+
+  rjmp _spi_stc_isr ; SPI_STC
 
 .org 0x0068 ; Start of user code section
 ;-------------------------------------------------------------------------------
@@ -34,18 +41,30 @@ _start:
   ldi r16, hi8(RAMEND) ; 0x08
   out SPH, r16
 
+  rcall spi_master_init
   rcall osc_cal
+  sei
 
 main_loop:
 
   rjmp main_loop
 ;-------------------------------------------------------------------------------
 
+spi_master_init:
+  ldi r16, 1 << 0 ; SPI2X
+  out SPSR, r16 ; Enable double SPI speed
+  ldi r16, (1 << 7) | (1 << 6) | (1 << 4) ; SPIE, SPE, MSTR
+  out SPCR, r16 ; Enable SPI, SPI interrupt, master mode
+  ret
+
 osc_cal:
   ; Load new internal RC oscillator calibration value
   ldi r16, CALIBRATION
   sts OSCCAL, r16
   ret
+
+_spi_stc_isr:
+  reti
 
 guard_loop:
   ; Prevent program from running into data area
