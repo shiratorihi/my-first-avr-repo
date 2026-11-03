@@ -1,8 +1,12 @@
 ; vim: set filetype=asm:
 
-; template.S by ShiratoriYuuka314
+; tft_st7735.S by ShiratoriYuuka314
 ; For use on ATmega328P microcontroller
-
+; Using hardware SPI interface to control TFT module
+; TFT module based on ST7735S, 128x128 resolution
+; Using RGB565 color format
+; PD7:5 as RST, RS, CS control pins
+; Running on calibrated internal RC oscillator @ 8MHz
 ; This program is completely bare-metal and doesn't need to link standard start file
 
 ; Set RAMEND addr
@@ -17,6 +21,11 @@
 .equ DDRB, 0x04
 ; Set SFR Data addr
 .equ OSCCAL, 0x66
+
+; Set pin definition
+.equ RST, 7
+.equ RS, 6
+.equ CS, 5
 
 ; Calibration for internal calibrated RC oscillator varies on different chips
 .equ CALIBRATION, 0xC0 ; Default value of my chip is 0xC5, calibrated to error margin < ±1%
