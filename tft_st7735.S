@@ -7,7 +7,7 @@
 ; Using RGB565 color format
 ; PD7:5 as RST, RS, CS control pins
 ; Reaching approx. 11 fps @ 8MHz
-; Theoretical limit @ 8MHz(4MHz SPI speed) is approx. 14 fps
+; Theoretical limit @ 8MHz (4MHz SPI speed) is approx. 14 fps
 ; Running on calibrated internal RC oscillator @ 8MHz
 ; This program is completely bare-metal and doesn't need to link standard start file
 
