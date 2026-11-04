@@ -207,11 +207,11 @@ tft_set_fullscreen:
   rcall tft_send_command
   ldi r24, 0x00
   rcall tft_send_data
-  ldi r24, 0x00 ; Row address from 0
+  ldi r24, 0x01 ; Row address from 1
   rcall tft_send_data
   ldi r24, 0x00
   rcall tft_send_data
-  ldi r24, 0x7F ; to 127
+  ldi r24, 0x80 ; to 128
   rcall tft_send_data
   sbi PORTD, CS
   ret
