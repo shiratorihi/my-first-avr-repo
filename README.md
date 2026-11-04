@@ -29,15 +29,17 @@ All subprojects are made with ATmega328P microcontroller on a breadboard.
 - `four_digit.S`
 - `serial_prime.S`
 - `lcd1602.S`
+- `tft_st7735.S`
 
 ### In progress
 
-- `tft_st7735.S`
+- _Currently nothing..._
 
 ### Planned
 
 - `raw_pcm.S`
 - `serial_prime_32.S`
+- `tft_st7735_bitmap.S`
 - ......
 
 ## Getting started
