@@ -64,11 +64,9 @@ main_loop:
   ldi r22, 0xFF ; White
   rcall tft_fill_screen
 
-
   ldi r23, 0x00
   ldi r22, 0x00 ; Black
   rcall tft_fill_screen
-
 
   ldi r23, 0xF8
   ldi r22, 0x00 ; Red
